@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="ZR">
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2024/01/13/内存管理系统/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+        <meta name="description" content="一、开启分页机制1、准备好页目录及页表 清空页目录：首先清空了页目录占用的空间，将每个字节都设置为0，确保页目录表是空的。 创建页目录项（PDE）：  a. 将低1GB的虚拟地址空间映射到物理地址空间，方便用户进程和内核的访问。  b. 创建了一个PDE来表示这个映射，将这个PDE写入到页目录表的第0个和倒数第二个目录项中。  c. 最后一个PDE被设置为指向页目录表自身的地址，形成了页目录表的循">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存管理系统">
+<meta property="og:url" content="http://example.com/2024/01/13/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="ZR">
+<meta property="og:description" content="一、开启分页机制1、准备好页目录及页表 清空页目录：首先清空了页目录占用的空间，将每个字节都设置为0，确保页目录表是空的。 创建页目录项（PDE）：  a. 将低1GB的虚拟地址空间映射到物理地址空间，方便用户进程和内核的访问。  b. 创建了一个PDE来表示这个映射，将这个PDE写入到页目录表的第0个和倒数第二个目录项中。  c. 最后一个PDE被设置为指向页目录表自身的地址，形成了页目录表的循">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-01-13T03:23:00.000Z">
+<meta property="article:modified_time" content="2024-03-18T04:30:49.503Z">
+<meta property="article:author" content="ZR">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+    
+    
+        <!-- Google tag (gtag.js) -->
+        <script src="https://www.googletagmanager.com/gtag/js?id="></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', '');
+        </script>
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            内存管理系统 -
+        
+        ZR&#39;s blog
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+        <style>
+    :root {
+        --preloader-background-color: #fff;
+        --preloader-text-color: #000;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --preloader-background-color: #202124;
+            --preloader-text-color: #fff;
+        }
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            --preloader-background-color: #fff;
+            --preloader-text-color: #000;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .ml13 {
+            font-size: 2.6rem !important; /* Adjust this value as needed */
+        }
+    }
+
+    .preloader {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem; /* Tailwind 'gap-4' is 1rem */
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        padding: 12px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh; /* 'h-screen' is 100% of the viewport height */
+        background-color: var(--preloader-background-color);
+        z-index: 1100; /* 'z-[1100]' sets the z-index */
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .ml13 {
+        font-size: 3.2rem;
+        /* text-transform: uppercase; */
+        color: var(--preloader-text-color);
+        letter-spacing: -1px;
+        font-weight: 500;
+        font-family: 'Chillax-Variable', sans-serif;
+        text-align: center;
+    }
+
+    .ml13 .word {
+        display: inline-flex;
+        flex-wrap: wrap;
+        white-space: nowrap;
+    }
+
+    .ml13 .letter {
+        display: inline-block;
+        line-height: 1em;
+    }
+</style>
+
+<div class="preloader">
+    
+<script src="/js/libs/anime.min.js"></script>
+
+    <h1 class="ml13">
+        ZR&#39;s blog
+    </h1>
+    <script>
+        var textWrapper = document.querySelector('.ml13');
+        // Split text into words
+        var words = textWrapper.textContent.trim().split(' ');
+
+        // Clear the existing content
+        textWrapper.innerHTML = '';
+
+        // Wrap each word and its letters in spans
+        words.forEach(function(word) {
+            var wordSpan = document.createElement('span');
+            wordSpan.classList.add('word');
+            wordSpan.innerHTML = word.replace(/\S/g, "<span class='letter'>$&</span>");
+            textWrapper.appendChild(wordSpan);
+            textWrapper.appendChild(document.createTextNode(' ')); // Add space between words
+        });
+
+
+        anime.timeline({loop: true})
+            .add({
+                targets: '.ml13 .letter',
+                translateY: [100,0],
+                translateZ: 0,
+                opacity: [0,1],
+                easing: "easeOutExpo",
+                duration: 1400,
+                delay: (el, i) => 300 + 30 * i
+            }).add({
+            targets: '.ml13 .letter',
+            translateY: [0,-100],
+            opacity: [1,0],
+            easing: "easeInExpo",
+            duration: 1200,
+            delay: (el, i) => 100 + 30 * i
+        });
+
+        let themeStatus = JSON.parse(localStorage.getItem('REDEFINE-THEME-STATUS'))?.isDark;
+
+        // If the theme status is not found in local storage, check the preferred color scheme
+        if (themeStatus === undefined || themeStatus === null) {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                themeStatus = 'dark';
+            } else {
+                themeStatus = 'light';
+            }
+        }
+
+        // Now you can use the themeStatus variable in your code
+        if (themeStatus) {
+            document.documentElement.style.setProperty('--preloader-background-color', '#202124');
+            document.documentElement.style.setProperty('--preloader-text-color', '#fff');
+        } else {
+            document.documentElement.style.setProperty('--preloader-background-color', '#fff');
+            document.documentElement.style.setProperty('--preloader-text-color', '#000');
+        }
+
+        window.addEventListener('load', function () {
+            hidePreloaderAfterTimeout(1000); // Hide after 1000 milliseconds once the window has loaded
+        });
+
+        // Backup failsafe: Hide preloader after a maximum of 5000 milliseconds, regardless of the window load event
+        hidePreloaderAfterTimeout(5000);
+
+        function hidePreloaderAfterTimeout(delay) {
+            setTimeout(function () {
+                var preloader = document.querySelector('.preloader');
+                preloader.style.opacity = '0';
+                setTimeout(function () {
+                    preloader.style.display = 'none';
+                }, 200);
+            }, delay);
+        }
+    </script>
+</div>
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/assets/build/styles.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/fonts.css">
+
+    
+<link rel="stylesheet" href="/fonts/Satoshi/satoshi.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"title_alignment":"left","headings_top_spacing":{"h1":"5rem","h2":"4rem","h3":"2.8rem","h4":"2.5rem","h5":"2.2rem","h6":"2rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":true,"list":["Linux","嵌入式","问题解决","日常"]},"code_block":{"copy":true,"style":"mac","font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":true,"open_graph":true,"google_analytics":{"enable":true,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/welcome-cover.webp","dark":"/images/cover1.webp"},"title":"ZR's blog","subtitle":{"text":["总有一条蜿蜒在童话镇里七彩的河"],"hitokoto":{"enable":true,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/XDzr","instagram":null,"zhihu":null,"twitter":null,"email":"19105816977@163.com"},"qrs":{"weixin":null}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":true,"type":"fixed","audios":[{"name":"The truth that you leave","artist":"Pianoboy高至豪","url":"http://link.hhtjim.com/163/410518453.mp3","cover":"https://i.postimg.cc/gjs7QyrR/20240316224308.png","lrc":null}]},"mermaid":{"enable":false,"version":"9.3.0"}},"version":"2.6.1","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Archives":{"path":"/archives","icon":"fa-regular fa-archive"}},"search":{"enable":true,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":false,"links":{"嵌入式":{"path":"/categories/嵌入式","icon":"fa-regular fa-folder"},"Linux":{"path":"/categories/Linux","icon":"fa-regular fa-folder"},"日常":{"path":"/categories/日常","icon":"fa-regular fa-folder"},"问题解决":{"path":"/categories/问题解决","icon":"fa-regular fa-folder"}}},"article_date_format":"auto","categories":{"enable":true,"limit":4},"tags":{"enable":true,"limit":4}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+<!--        <span class="swup-progress-icon">-->
+<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+<!--        </span>-->
+    
+</div>
+
+
+<main class="page-container" id="swup">
+
+    
+
+    <div class="main-content-container">
+
+
+        <div class="main-content-header">
+            <header class="navbar-container px-6 md:px-12">
+
+    <div class="navbar-content ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                ZR&#39;s blog
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/archives"
+                                        >
+                                    <i class="fa-regular fa-archive fa-fw"></i>
+                                    ARCHIVES
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                        <li class="navbar-item search search-popup-trigger">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-screen w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/archives"
+                        >
+                            <span>
+                                ARCHIVES
+                            </span>
+                            
+                                <i class="fa-regular fa-archive fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">4</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">4</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="main-content-body">
+
+            
+
+            <div class="main-content">
+
+                
+                    <div class="post-page-container flex relative justify-between box-border w-full h-full">
+    <div class="article-content-container">
+
+        <div class="article-title relative w-full">
+            
+                <div class="w-full flex items-center pt-6 justify-start">
+                    <h1 class="article-title-regular text-second-text-color text-4xl md:text-6xl font-bold px-2 sm:px-6 md:px-8 py-3">内存管理系统</h1>
+                </div>
+            
+            </div>
+
+        
+            <div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+                <div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+                    <img src="/images/redefine-avatar.svg">
+                </div>
+                <div class="info flex flex-col justify-between">
+                    <div class="author flex items-center">
+                        <span class="name text-default-text-color text-lg font-semibold">ZR</span>
+                        
+                            <span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2024-01-13 11:23</span>
+        <span class="mobile">2024-01-13 11:23</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2024-03-18 12:30:49</span>
+            <span class="mobile">2024-03-18 12:30:49</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+        <span class="article-categories article-meta-item">
+            <i class="fa-regular fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/Linux/">Linux</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Linux/">Linux</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        
+
+
+        <div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+            <h3 id="一、开启分页机制"><a href="#一、开启分页机制" class="headerlink" title="一、开启分页机制"></a>一、开启分页机制</h3><h4 id="1、准备好页目录及页表"><a href="#1、准备好页目录及页表" class="headerlink" title="1、准备好页目录及页表"></a>1、准备好页目录及页表</h4><ol>
+<li>清空页目录：首先清空了页目录占用的空间，将每个字节都设置为0，确保页目录表是空的。</li>
+<li>创建页目录项（PDE）：<br>  a. 将低1GB的虚拟地址空间映射到物理地址空间，方便用户进程和内核的访问。<br>  b. 创建了一个PDE来表示这个映射，将这个PDE写入到页目录表的第0个和倒数第二个目录项中。<br>  c. 最后一个PDE被设置为指向页目录表自身的地址，形成了页目录表的循环结构，以便操作系统可以通过虚拟地址访问页目录表。</li>
+<li>创建页目录表（PTE）：<br>  a. 填充了第一个页表。这个页表将虚拟地址的低1GB映射到物理地址的低1GB，这样用户空间的进程可以访问到这部分物理地址空间。<br>  b. 创建了内核其他页表的PDE，将这些页表映射到页目录表的后续项中，从而映射了内核的其他地址空间。</li>
+</ol>
+<h4 id="2、重启加载-GDT"><a href="#2、重启加载-GDT" class="headerlink" title="2、重启加载 GDT"></a>2、重启加载 GDT</h4><p>重启加载 GDT 的主要目的是为了确保在分页机制启用后，GDT 中的段描述符已经正确地反映了新的内存布局和内核的位置。这是因为分页机制的启用会导致内存的地址映射发生变化，原来的地址和段基址可能已经不再有效。因此，需要更新 GDT 中的段描述符，以正确地映射内核和其他重要的段。</p>
+<h4 id="3、启用分页机制"><a href="#3、启用分页机制" class="headerlink" title="3、启用分页机制"></a>3、启用分页机制</h4><p>将页目录表的物理地址赋给 cr3 寄存器，开启 cr0 寄存器的 pg 位，重新加载 GDT</p>
+<h3 id="二、实现字符串函数"><a href="#二、实现字符串函数" class="headerlink" title="二、实现字符串函数"></a>二、实现字符串函数</h3><h4 id="1、memset-用于将一段内存区域的内容全部设置为指定的值。"><a href="#1、memset-用于将一段内存区域的内容全部设置为指定的值。" class="headerlink" title="1、memset 用于将一段内存区域的内容全部设置为指定的值。"></a>1、memset 用于将一段内存区域的内容全部设置为指定的值。</h4><h4 id="2、memcpy-用于将源内存区域的内容复制到目标内存区域。"><a href="#2、memcpy-用于将源内存区域的内容复制到目标内存区域。" class="headerlink" title="2、memcpy 用于将源内存区域的内容复制到目标内存区域。"></a>2、memcpy 用于将源内存区域的内容复制到目标内存区域。</h4><h4 id="3、memcmp-用于比较两个内存区域的内容是否相等。"><a href="#3、memcmp-用于比较两个内存区域的内容是否相等。" class="headerlink" title="3、memcmp 用于比较两个内存区域的内容是否相等。"></a>3、memcmp 用于比较两个内存区域的内容是否相等。</h4><div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 将 dst_起始的 size 个字节置为 value */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">memset</span><span class="params">(<span class="type">void</span>* dst_, <span class="type">uint8_t</span> value, <span class="type">uint32_t</span> size)</span> &#123;</span><br><span class="line">    ASSERT(dst_ != <span class="literal">NULL</span>);</span><br><span class="line">    <span class="type">uint8_t</span>* dst = (<span class="type">uint8_t</span>*)dst_;</span><br><span class="line">    <span class="keyword">while</span> (size-- &gt; <span class="number">0</span>)</span><br><span class="line">    *dst++ = value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 将 src_起始的 size 个字节复制到 dst_ */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">memcpy</span><span class="params">(<span class="type">void</span>* dst_, <span class="type">const</span> <span class="type">void</span>* src_, <span class="type">uint32_t</span> size)</span> &#123;</span><br><span class="line">    ASSERT(dst_ != <span class="literal">NULL</span> &amp;&amp; src_ != <span class="literal">NULL</span>);</span><br><span class="line">    <span class="type">uint8_t</span>* dst = dst_;</span><br><span class="line">    <span class="type">const</span> <span class="type">uint8_t</span>* src = src_;</span><br><span class="line">    <span class="keyword">while</span> (size-- &gt; <span class="number">0</span>)</span><br><span class="line">    *dst++ = *src++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 连续比较以地址 a_和地址 b_开头的 size 个字节，若相等则返回 0，</span></span><br><span class="line"><span class="comment">若 a_大于 b_，返回+1，否则返回−1 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">memcmp</span><span class="params">(<span class="type">const</span> <span class="type">void</span>* a_, <span class="type">const</span> <span class="type">void</span>* b_, <span class="type">uint32_t</span> size)</span> &#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* a = a_;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* b = b_;</span><br><span class="line">    ASSERT(a != <span class="literal">NULL</span> || b != <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">while</span> (size-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(*a != *b) &#123;</span><br><span class="line">            <span class="keyword">return</span> *a &gt; *b ? <span class="number">1</span> : −<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        a++;</span><br><span class="line">        b++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="三、实现位图bitmap的相关接口函数"><a href="#三、实现位图bitmap的相关接口函数" class="headerlink" title="三、实现位图bitmap的相关接口函数"></a>三、实现位图bitmap的相关接口函数</h3><h4 id="1、原因"><a href="#1、原因" class="headerlink" title="1、原因"></a>1、原因</h4><p>位图相当于一组资源的映射。位图中的每一位和被管理的单位资源都是一对一的关系，故位图主要用于管理容量较大的资源。</p>
+<h4 id="2、bitmap-init-struct-bitmap-btmp"><a href="#2、bitmap-init-struct-bitmap-btmp" class="headerlink" title="2、bitmap_init(struct bitmap* btmp)"></a>2、bitmap_init(struct bitmap* btmp)</h4><p>函数用于初始化位图，将位图中所有位都置为 0。<br>使用 memset 函数将位图内存块的所有内容都初始化为 0。</p>
+<h4 id="3、bitmap-scan-test-struct-bitmap-btmp-uint32-t-bit-idx"><a href="#3、bitmap-scan-test-struct-bitmap-btmp-uint32-t-bit-idx" class="headerlink" title="3、bitmap_scan_test(struct bitmap* btmp, uint32_t bit_idx)"></a>3、bitmap_scan_test(struct bitmap* btmp, uint32_t bit_idx)</h4><p>函数用于判断位图中某一位的状态。<br>首先根据 bit_idx 计算出位所在的字节索引 byte_idx 和位索引 bit_odd。<br>使用位操作，将对应位的状态取出并返回。</p>
+<h4 id="4、bitmap-scan-struct-bitmap-btmp-uint32-t-cnt"><a href="#4、bitmap-scan-struct-bitmap-btmp-uint32-t-cnt" class="headerlink" title="4、bitmap_scan(struct bitmap* btmp, uint32_t cnt)"></a>4、bitmap_scan(struct bitmap* btmp, uint32_t cnt)</h4><p>函数用于设置位图中某一位的状态。</p>
+<ol>
+<li>逐字节比较找到第一个非满字节</li>
+<li>查找连续的空闲位</li>
+<li>返回空闲位的起始下标<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bitmap_scan</span><span class="params">(<span class="keyword">struct</span> bitmap* btmp, <span class="type">uint32_t</span> cnt)</span> &#123;</span><br><span class="line">    <span class="type">uint32_t</span> idx_byte = <span class="number">0</span>; <span class="comment">// 用于记录空闲位所在的字节</span></span><br><span class="line">    <span class="comment">/* 先逐字节比较，蛮力法 */</span></span><br><span class="line">    <span class="keyword">while</span> ((<span class="number">0xff</span> == btmp-&gt;bits[idx_byte]) &amp;&amp; (idx_byte &lt; btmp-&gt;btmp_bytes_len)) &#123;</span><br><span class="line">        <span class="comment">/* 1 表示该位已分配，若为 0xff，则表示该字节内已无空闲位，向下一字节继续找 */</span></span><br><span class="line">        idx_byte++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ASSERT(idx_byte &lt; btmp-&gt;btmp_bytes_len);</span><br><span class="line">    <span class="keyword">if</span> (idx_byte == btmp-&gt;btmp_bytes_len) &#123; <span class="comment">// 若该内存池找不到可用空间</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 若在位图数组范围内的某字节内找到了空闲位</span></span><br><span class="line"><span class="comment">     * 在该字节内逐位比对，返回空闲位的索引。 */</span></span><br><span class="line">    <span class="type">int</span> idx_bit = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* 和 btmp-&gt;bits[idx_byte]这个字节逐位对比 */</span></span><br><span class="line">    <span class="keyword">while</span> ((<span class="type">uint8_t</span>)(BITMAP_MASK &lt;&lt; idx_bit) &amp; btmp-&gt;bits[idx_byte]) &#123;</span><br><span class="line">        idx_bit++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> bit_idx_start = idx_byte * <span class="number">8</span> + idx_bit; <span class="comment">// 空闲位在位图内的下标</span></span><br><span class="line">    <span class="keyword">if</span> (cnt == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> bit_idx_start;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">uint32_t</span> bit_left = (btmp-&gt;btmp_bytes_len * <span class="number">8</span> - bit_idx_start); <span class="comment">// 记录还有多少位可以判断</span></span><br><span class="line">    <span class="type">uint32_t</span> next_bit = bit_idx_start + <span class="number">1</span>;</span><br><span class="line">    <span class="type">uint32_t</span> count = <span class="number">1</span>; <span class="comment">// 用于记录找到的空闲位的个数</span></span><br><span class="line"></span><br><span class="line">    bit_idx_start = <span class="number">-1</span>; <span class="comment">// 先将其置为 -1，若找不到连续的位就直接返回</span></span><br><span class="line">    <span class="keyword">while</span> (bit_left-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!(bitmap_scan_test(btmp, next_bit))) &#123; <span class="comment">// 若 next_bit 为 0</span></span><br><span class="line">            count++;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            count = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (count == cnt) &#123; <span class="comment">// 若找到连续的 cnt 个空位</span></span><br><span class="line">            bit_idx_start = next_bit - cnt + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        next_bit++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bit_idx_start;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div></li>
+</ol>
+<h3 id="四、实现内存管理系统"><a href="#四、实现内存管理系统" class="headerlink" title="四、实现内存管理系统"></a>四、实现内存管理系统</h3><h3 id="1、vaddr-get："><a href="#1、vaddr-get：" class="headerlink" title="1、vaddr_get："></a>1、vaddr_get：</h3><p>这个函数用于从虚拟地址管理池中获取一定数量的虚拟地址空间。<br>根据传入的内存池类型和页面数量，调用 bitmap_scan 和 bitmap_set 来管理虚拟地址的分配情况。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* <span class="title function_">vaddr_get</span><span class="params">(<span class="keyword">enum</span> pool_flags pf, <span class="type">uint32_t</span> pg_cnt)</span> &#123;</span><br><span class="line">    <span class="type">int</span> vaddr_start = <span class="number">0</span>, bit_idx_start = <span class="number">-1</span>;</span><br><span class="line">    <span class="type">uint32_t</span> cnt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pf == PF_KERNEL) &#123;</span><br><span class="line">        <span class="comment">// 在 kernel_vaddr 的虚拟地址位图中找到一段连续的虚拟地址</span></span><br><span class="line">        bit_idx_start = bitmap_scan(&amp;kernel_vaddr.vaddr_bitmap, pg_cnt);</span><br><span class="line">        <span class="keyword">if</span> (bit_idx_start == <span class="number">-1</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 设置这段虚拟地址已被占用</span></span><br><span class="line">        <span class="keyword">while</span> (cnt &lt; pg_cnt)</span><br><span class="line">            bitmap_set(&amp;kernel_vaddr.vaddr_bitmap, bit_idx_start + (cnt++), <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算起始虚拟地址</span></span><br><span class="line">        vaddr_start = kernel_vaddr.vaddr_start + bit_idx_start * PG_SIZE;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 对用户内存池的处理，这部分没有具体实现，根据需要补充</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (<span class="type">void</span>*)vaddr_start;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h4 id="2、palloc"><a href="#2、palloc" class="headerlink" title="2、palloc"></a>2、palloc</h4><p>这个函数用于从指定的内存池中分配一页的物理内存。<br>通过调用 bitmap_scan 和 bitmap_set 来管理物理页的分配情况。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* <span class="title function_">palloc</span><span class="params">(<span class="keyword">struct</span> pool* m_pool)</span> &#123;</span><br><span class="line">    <span class="type">int</span> bit_idx = bitmap_scan(&amp;m_pool-&gt;pool_bitmap, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (bit_idx == <span class="number">-1</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置这个位已被占用</span></span><br><span class="line">    bitmap_set(&amp;m_pool-&gt;pool_bitmap, bit_idx, <span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算物理地址</span></span><br><span class="line">    <span class="type">uint32_t</span> page_phyaddr = ((bit_idx * PG_SIZE) + m_pool-&gt;phy_addr_start);</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">void</span>*)page_phyaddr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+<h4 id="3、page-table-add"><a href="#3、page-table-add" class="headerlink" title="3、page_table_add"></a>3、page_table_add</h4><p>这个函数用于将虚拟地址和物理地址的映射添加到页表中。<br>根据传入的虚拟地址，计算出页表和页目录项的指针，然后将物理地址和相关标志写入页表中。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">page_table_add</span><span class="params">(<span class="type">void</span>* _vaddr, <span class="type">void</span>* _page_phyaddr)</span> &#123;</span><br><span class="line">    <span class="type">uint32_t</span> vaddr = (<span class="type">uint32_t</span>)_vaddr, page_phyaddr = (<span class="type">uint32_t</span>)_page_phyaddr;</span><br><span class="line">    <span class="type">uint32_t</span>* pde = pde_ptr(vaddr);</span><br><span class="line">    <span class="type">uint32_t</span>* pte = pte_ptr(vaddr);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 根据虚拟地址计算出对应的页表项（PTE）和页目录项（PDE）。</span></span><br><span class="line"><span class="comment">   如果页目录项存在（已经分配），则直接将物理地址填入对应的页表项。</span></span><br><span class="line"><span class="comment">   如果页目录项不存在（未分配），则先分配一个页目录项，然后将对应的页表项清零，并填入物理地址。 */</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (*pde &amp; <span class="number">0x00000001</span>) &#123;</span><br><span class="line">        ASSERT(!(*pte &amp; <span class="number">0x00000001</span>));</span><br><span class="line">        <span class="keyword">if</span> (!(*pte &amp; <span class="number">0x00000001</span>))</span><br><span class="line">            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            PANIC(<span class="string">&quot;pte repeat&quot;</span>);</span><br><span class="line">            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">uint32_t</span> pde_phyaddr = (<span class="type">uint32_t</span>)palloc(&amp;kernel_pool);</span><br><span class="line">        *pde = (pde_phyaddr | PG_US_U | PG_RW_W | PG_P_1);</span><br><span class="line">        <span class="built_in">memset</span>((<span class="type">void</span>*)((<span class="type">int</span>)pte &amp; <span class="number">0xfffff000</span>), <span class="number">0</span>, PG_SIZE);</span><br><span class="line">        ASSERT(!(*pte &amp; <span class="number">0x00000001</span>));</span><br><span class="line">        *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h4 id="4、malloc-page"><a href="#4、malloc-page" class="headerlink" title="4、malloc_page"></a>4、malloc_page</h4><p>这个函数是在内核中用于分配连续多页的虚拟地址和物理内存的函数。并且建立虚拟地址和物理地址之间的映射关系，从而为进程提供可用的内存空间。<br>在实现中调用了 vaddr_get 和 palloc，并在分配页面后调用 page_table_add 来建立映射关系。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* <span class="title function_">malloc_page</span><span class="params">(<span class="keyword">enum</span> pool_flags pf, <span class="type">uint32_t</span> pg_cnt)</span> &#123;</span><br><span class="line">    ASSERT(pg_cnt &gt; <span class="number">0</span> &amp;&amp; pg_cnt &lt; <span class="number">3840</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="type">void</span>* vaddr_start = vaddr_get(pf, pg_cnt);</span><br><span class="line">    <span class="keyword">if</span> (vaddr_start == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="type">uint32_t</span> vaddr = (<span class="type">uint32_t</span>)vaddr_start, cnt = pg_cnt;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool</span>* <span class="title">mem_pool</span> =</span> pf &amp; PF_KERNEL ? &amp;kernel_pool : &amp;user_pool;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (cnt-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="type">void</span>* page_phyaddr = palloc(mem_pool);</span><br><span class="line">        <span class="keyword">if</span> (page_phyaddr == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        page_table_add((<span class="type">void</span>*)vaddr, page_phyaddr);</span><br><span class="line">        vaddr += PG_SIZE;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> vaddr_start;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+
+        </div>
+
+        
+            <div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+                <div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> 内存管理系统</li>
+        <li><strong>Author:</strong> ZR</li>
+        <li><strong>Created at
+                :</strong> 2024-01-13 11:23:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2024-03-18 12:30:49
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://redefine.ohevan.com/2024/01/13/内存管理系统/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+            </div>
+        
+
+        
+            <ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+                
+                    <li class="tag-item mx-0.5">
+                        <a href="/tags/Linux/">#Linux</a>&nbsp;
+                    </li>
+                
+            </ul>
+        
+
+        
+
+        
+            <div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+                
+                    <div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+                        <a class="prev"
+                        rel="prev"
+                        href="/2024/01/18/CAN%E6%80%BB%E7%BA%BF%E9%9A%BE%E7%82%B9/"
+                        >
+                            <span class="left arrow-icon flex justify-center items-center">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex justify-center items-center">
+                                <span class="post-nav-title-item">CAN总线难点</span>
+                                <span class="post-nav-item">Prev posts</span>
+                            </span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+                        <a class="next"
+                        rel="next"
+                        href="/2024/01/05/Linux%E9%A9%B1%E5%8A%A8%E8%AE%BE%E5%A4%87%E6%A0%91%E5%92%8C%E8%AE%BE%E5%A4%87%E5%8C%B9%E9%85%8D%E9%97%AE%E9%A2%98/"
+                        >
+                            <span class="title flex justify-center items-center">
+                                <span class="post-nav-title-item">Linux驱动设备树和设备匹配问题</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex justify-center items-center">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+
+        
+            <div class="comment-container px-2 sm:px-6 md:px-8 pb-8">
+                <div class="comments-container mt-10 w-full ">
+    <div id="comment-anchor" class="w-full h-2.5"></div>
+    <div class="comment-area-title w-full my-1.5 md:my-2.5 text-xl md:text-3xl font-bold">
+        Comments
+    </div>
+    
+
+        
+            
+    <div id="waline"></div>
+    <script type="module" data-swup-reload-script>
+      import { init } from '/js/libs/waline.mjs';
+
+      function loadWaline() {
+        init({
+          el: '#waline',
+          serverURL: 'https://example.example.com',
+          lang: 'zh-CN',
+          dark: 'body[class~="dark-mode"]',
+          requiredMeta: ['nick', 'mail'],
+          emoji: [],
+          recaptchaV3Key: "wasd",
+          
+        });
+      }
+
+      if (typeof swup !== 'undefined') {
+        loadWaline();
+      } else {
+        window.addEventListener('DOMContentLoaded', loadWaline);
+      }
+    </script>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+
+    
+        <div class="toc-content-container">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <div class="toc-title">On this page</div>
+        <div class="page-title">内存管理系统</div>
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%BC%80%E5%90%AF%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6"><span class="nav-text">一、开启分页机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9E%E7%8E%B0%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0"><span class="nav-text">二、实现字符串函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%AE%9E%E7%8E%B0%E4%BD%8D%E5%9B%BEbitmap%E7%9A%84%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3%E5%87%BD%E6%95%B0"><span class="nav-text">三、实现位图bitmap的相关接口函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%AE%9E%E7%8E%B0%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F"><span class="nav-text">四、实现内存管理系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81vaddr-get%EF%BC%9A"><span class="nav-text">1、vaddr_get：</span></a></li></ol>
+
+    </div>
+</div>
+        </div>
+    
+</div>
+
+
+
+                
+
+            </div>
+
+            
+
+        </div>
+
+        <div class="main-content-footer">
+            <footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2024&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">ZR</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        12 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.6.1</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="article-tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="right-bottom-tools page-aside-toggle">
+                <i class="fa-regular fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fa-regular fa-comments"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-side-tools-container">
+        <div class="side-tools-container">
+    <ul class="hidden-tools-list">
+        <li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-plus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-minus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+            <i class="fa-regular fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+
+        <li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+            <i class="fa-regular fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="visible-tools-list">
+        <li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+            <i class="fa-regular fa-cog fa-spin"></i>
+        </li>
+        
+            <li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+                <i class="arrow-up fas fa-arrow-up"></i>
+                <span class="percent"></span>
+            </li>
+        
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fa-solid fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fa-solid fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fa-solid fa-spinner fa-spin-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+    
+<script src="/js/libs/Swup.min.js"></script>
+
+<script src="/js/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+
+
+
+<script src="/js/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/utils.js" type="module"></script>
+
+<script src="/js/main.js" type="module"></script>
+
+<script src="/js/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/layouts/categoryList.js" type="module"></script>
+
+
+
+    
+<script src="/js/tools/localSearch.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/runtime.js"></script>
+
+    
+<script src="/js/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/libs/Typed.min.js"></script>
+
+  
+<script src="/js/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+
+<div class="post-scripts" data-swup-reload-script>
+    
+        
+<script src="/js/tools/tocToggle.js" type="module"></script>
+
+<script src="/js/layouts/toc.js" type="module"></script>
+
+<script src="/js/plugins/tabs.js" type="module"></script>
+
+    
+</div>
+
+
+    <div id="aplayer"></div>
+
+<script src="/js/libs/APlayer.min.js"></script>
+
+
+<script src="/js/plugins/aplayer.js"></script>
+
+
+</body>
+</html>
