@@ -1,82 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>CAN开发流程</title>
-    <url>/2024/01/23/CAN%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
-    <content><![CDATA[<h3 id="修改设备树"><a href="#修改设备树" class="headerlink" title="修改设备树"></a>修改设备树</h3><h4 id="1、FlexCAN1-引脚节点信息"><a href="#1、FlexCAN1-引脚节点信息" class="headerlink" title="1、FlexCAN1 引脚节点信息"></a>1、FlexCAN1 引脚节点信息</h4><p>首先是 CAN1 引脚配置信息：</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">pinctrl_flexcan1: flexcan1grp&#123;</span><br><span class="line">fsl,pins = &lt;</span><br><span class="line">MX6UL_PAD_UART3_RTS_B__FLEXCAN1_RX <span class="number">0x1b020</span></span><br><span class="line">MX6UL_PAD_UART3_CTS_B__FLEXCAN1_TX <span class="number">0x1b020</span></span><br><span class="line">&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-
-<h4 id="2、FlexCAN1-控制器节点信息"><a href="#2、FlexCAN1-控制器节点信息" class="headerlink" title="2、FlexCAN1 控制器节点信息"></a>2、FlexCAN1 控制器节点信息</h4><p>&amp;flexcan1 {<br>pinctrl-names &#x3D; “default”;<br>pinctrl-0 &#x3D; &lt;&amp;pinctrl_flexcan1&gt;;<br>xceiver-supply &#x3D; &lt;&amp;reg_can_3v3&gt;;<br>status &#x3D; “okay”;<br>};</p>
-<h4 id="3、使能-Linux-内核自带的-FlexCAN-驱动"><a href="#3、使能-Linux-内核自带的-FlexCAN-驱动" class="headerlink" title="3、使能 Linux 内核自带的 FlexCAN 驱动"></a>3、使能 Linux 内核自带的 FlexCAN 驱动</h4><ol>
-<li>使能 CAN 总线:首先打开 CAN 总线子系统，在 Linux 下 CAN 总线是作为网络子系统的，打开CAN bus subsystem support</li>
-<li>使能 Freescale 系 CPU 的 FlexCAN 外设驱动，</li>
-</ol>
-<h4 id="4、FlexCAN-测试"><a href="#4、FlexCAN-测试" class="headerlink" title="4、FlexCAN 测试"></a>4、FlexCAN 测试</h4><ol>
-<li>检查 CAN 网卡设备是否存在：ifconfig -a</li>
-<li>移植 iproute2</li>
-<li>移植 can-utils 工具</li>
-<li>回环测试：在一个板子上进行 CAN 回环测试，自己给自己发送数据并接受</li>
-</ol>
-<h4 id="5、应用程序"><a href="#5、应用程序" class="headerlink" title="5、应用程序"></a>5、应用程序</h4><div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">send_can_frame</span><span class="params">(<span class="type">int</span> s, <span class="type">int</span> can_id, <span class="type">int</span> can_data_len, <span class="type">unsigned</span> <span class="type">char</span>* can_data)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_can</span> <span class="title">addr</span>;</span>      <span class="comment">//用于存储与CAN设备相关的地址信息</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ifreq</span> <span class="title">ifr</span>;</span>              <span class="comment">//用于存储获取到的CAN设备的信息</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *ifname = <span class="string">&quot;can0&quot;</span>;   <span class="comment">// CAN 设备名称</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建套接字</span></span><br><span class="line">    <span class="keyword">if</span> ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error while opening socket&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 ioctl() 函数获取CAN设备的接口索引，并将其存储在 ifr.ifr_ifindex 中。</span></span><br><span class="line">    <span class="built_in">strcpy</span>(ifr.ifr_name, ifname);</span><br><span class="line">    ioctl(s, SIOCGIFINDEX, &amp;ifr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将套接字与 CAN 设备绑定</span></span><br><span class="line">    addr.can_family = AF_CAN;</span><br><span class="line">    addr.can_ifindex = ifr.ifr_ifindex;</span><br><span class="line">    <span class="keyword">if</span> (bind(s, (<span class="keyword">struct</span> sockaddr *)&amp;addr, <span class="keyword">sizeof</span>(addr)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error in socket bind&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 准备要发送的数据帧</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">can_frame</span> <span class="title">frame</span>;</span></span><br><span class="line">    frame.can_id = can_id;    <span class="comment">// CAN ID</span></span><br><span class="line">    frame.can_dlc = can_data_len;  <span class="comment">// 数据长度</span></span><br><span class="line">    <span class="built_in">memcpy</span>(frame.data, can_data, can_data_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发送数据帧</span></span><br><span class="line">    <span class="type">int</span> nbytes = write(s, &amp;frame, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> can_frame));</span><br><span class="line">    <span class="keyword">if</span> (nbytes != <span class="keyword">sizeof</span>(<span class="keyword">struct</span> can_frame)) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error in sending CAN frame&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Sent CAN frame with ID 0x%03X\n&quot;</span>, frame.can_id);</span><br><span class="line"></span><br><span class="line">    close(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
-]]></content>
-      <categories>
-        <category>嵌入式</category>
-      </categories>
-      <tags>
-        <tag>嵌入式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CAN总线难点</title>
-    <url>/2024/01/18/CAN%E6%80%BB%E7%BA%BF%E9%9A%BE%E7%82%B9/</url>
-    <content><![CDATA[<h3 id="带宽和速率管理："><a href="#带宽和速率管理：" class="headerlink" title="带宽和速率管理："></a>带宽和速率管理：</h3><p>CAN 总线通常用于连接多个节点，这些节点可能会发送大量的数据，<br>因此需要有效地管理带宽和数据传输速率。特别是在高速 CAN 中，<br>如何确保数据在高速传输中的可靠性和实时性是一个挑战。</p>
-<ol>
-<li>使用错误检测和纠正机制：CAN协议通常使用CRC（循环冗余校验）来检测数据传输中的错误，并且一些应用可能会使用更高级别的纠错码（如重复码或汉明码）来进行错误纠正。</li>
-<li>优先级机制：CAN协议支持消息的优先级。通过正确设置消息的优先级，可以确保重要数据优先发送，从而提高实时性。</li>
-</ol>
-<h3 id="网络管理和拓扑结构："><a href="#网络管理和拓扑结构：" class="headerlink" title="网络管理和拓扑结构："></a>网络管理和拓扑结构：</h3><p>设计一个复杂的 CAN 网络需要考虑节点之间的连接方式、拓扑结构和通信规则等。这涉及到网络拓扑设计、节点分配和通信规则制定等方面的工作。</p>
-<h3 id="故障诊断和容错机制："><a href="#故障诊断和容错机制：" class="headerlink" title="故障诊断和容错机制："></a>故障诊断和容错机制：</h3><ol>
-<li><p>自动重传机制：CAN总线上的节点在发送消息时，会监视总线上的确认位（ACK）。如果节点没有收到ACK，它将自动重试发送消息，直到收到ACK或者达到最大重试次数。这种机制确保了消息的可靠传输。</p>
-</li>
-<li><p>错误帧和错误报告：CAN总线上的节点会监视错误帧，这些错误帧会在总线上传输，用于表示数据传输过程中的错误。节点可以根据收到的错误帧来检测总线上的错误，并将错误信息报告给系统的上层。</p>
-</li>
-<li><p>错误标识符：CAN总线上的每个节点都有一个唯一的标识符（ID），用于识别消息的发送者和接收者。如果节点收到了具有错误标识符的消息，它将忽略该消息，并将错误信息报告给系统的上层。</p>
-</li>
-</ol>
-<h3 id="如何确保你的CAN发送和接收代码正确"><a href="#如何确保你的CAN发送和接收代码正确" class="headerlink" title="如何确保你的CAN发送和接收代码正确"></a>如何确保你的CAN发送和接收代码正确</h3><ol>
-<li>硬件连接：确认CAN控制器与CAN总线连接正确，确保电源、地线和信号线连接正确并且稳定。</li>
-<li>使用示波器或CAN分析仪：使用示波器或专用的CAN分析仪来监视CAN总线上的信号。你可以验证发送消息的波形是否正确，以及接收消息时是否出现预期的波形。</li>
-<li>通过电压表测试两根线之间的电压可以帮助你判断是否有数据发送。在CAN总线中，当节点发送数据时，会在总线上产生电压差，这可以通过测量两根线之间的电压来检测。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>嵌入式</category>
-      </categories>
-      <tags>
-        <tag>嵌入式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Error: Spawn failed解决办法</title>
-    <url>/2023/12/17/Error-Spawn-failed%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</url>
-    <content><![CDATA[<h3 id="Solution1"><a href="#Solution1" class="headerlink" title="Solution1:"></a>Solution1:</h3><p>在创建的blog文件夹（即最早建的最大的文件夹）中找到_config.yml，把deploy板块中的repository换成ssh地址</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">repository: 此处填ssh地址</span><br></pre></td></tr></table></figure></div>
-<p>如果没有添加过密钥，则前往GitHub的个人设置（点击右上角头像旁边的小三角—&gt;settings)，点击SSH and GPG;在本地通过git生成密钥后再复制并添加到ssh keys中即可。</p>
-<h3 id="solution-2："><a href="#solution-2：" class="headerlink" title="solution 2："></a>solution 2：</h3><p>还是在blog文件夹下，删除名为.deploy_git的文件夹，在Windows下操作如下(打开cmd管理员模式)：</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">F:  (进入某盘)</span><br><span class="line">cd yourblog/  (进入你的博客文件夹)</span><br><span class="line">rd /s .deploy_git  (删除该文件)</span><br></pre></td></tr></table></figure></div>
-<p>然后在git命令行中执行</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure></div>
-<p>然后再走一遍流程</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo c</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure></div>
-]]></content>
-      <categories>
-        <category>问题解决</category>
-      </categories>
-      <tags>
-        <tag>问题解决</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux下查看内存使用情况方法</title>
     <url>/2024/02/01/Linux%E4%B8%8B%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<h3 id="1、atop"><a href="#1、atop" class="headerlink" title="1、atop"></a>1、atop</h3><p>atop命令是一个终端环境的监控命令。它显示的是各种系统资源（CPU, memory, network, I&#x2F;O, kernel）的综合，并且在高负载的情况下进行了彩色标注。<br>$ sudo atop</p>
@@ -194,6 +118,34 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux驱动开发常用函数</title>
+    <url>/2024/02/27/Linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h3 id="ioremap"><a href="#ioremap" class="headerlink" title="ioremap"></a>ioremap</h3><p>ioremap是Linux内核中的一个函数，用于将物理地址映射到内核的虚拟地址空间，以便内核可以直接访问设备的寄存器或内存区域。它通常用于设备驱动程序中，特别是在需要直接访问设备内存或寄存器时。</p>
+<h4 id="函数原型："><a href="#函数原型：" class="headerlink" title="函数原型："></a>函数原型：</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * offset：要映射的物理地址的偏移量。</span></span><br><span class="line"><span class="comment"> * size：要映射的区域大小。</span></span><br><span class="line"><span class="comment"> * void __iomem *：映射后的虚拟地址，通常是volatile类型。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">void</span> __iomem *<span class="title">ioremap</span><span class="params">(<span class="type">phys_addr_t</span> offset, <span class="type">size_t</span> size)</span></span>;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="open"><a href="#open" class="headerlink" title="open"></a>open</h3><h4 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * pathname ：文件的名称，可以包含（绝对和相对）路径</span></span><br><span class="line"><span class="comment"> * flags：文件打开模式</span></span><br><span class="line"><span class="comment"> * mode: 用来规定对该文件的所有者，文件的用户组及系统中其他用户的访问权限</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">open</span><span class="params">( <span class="type">const</span> <span class="type">char</span> * pathname, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">open</span><span class="params">( <span class="type">const</span> <span class="type">char</span> * pathname,<span class="type">int</span> flags, <span class="type">mode_t</span> mode)</span></span>;</span><br></pre></td></tr></table></figure></div>
+
+
+<h3 id="read"><a href="#read" class="headerlink" title="read"></a>read</h3><p>read()会把参数fd所指的文件传送count 个字节到buf 指针所指的内存中。</p>
+<h4 id="函数定义-1"><a href="#函数定义-1" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 返回值为实际读取到的字节数, 如果返回0, 表示已到达文件尾或是无可读取的数据。若参数count 为* 0, 则read()不会有作用并返回0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> * buf, <span class="type">size_t</span> count)</span></span>;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="write"><a href="#write" class="headerlink" title="write"></a>write</h3><p>write()会把参数buf所指的内存写入count个字节到参数放到所指的文件内。</p>
+<h4 id="函数定义-2"><a href="#函数定义-2" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 如果顺利write()会返回实际写入的字节数。当有错误发生时则返回-1，错误代码存入errno中</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">write</span> <span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> * buf, <span class="type">size_t</span> count)</span></span>;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="copy-to-user"><a href="#copy-to-user" class="headerlink" title="copy_to_user"></a>copy_to_user</h3><p>从内核空间中读取数据到用户空间。</p>
+<h4 id="函数定义-3"><a href="#函数定义-3" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * to：目标地址（用户空间）</span></span><br><span class="line"><span class="comment"> * from：源地址（内核空间）</span></span><br><span class="line"><span class="comment"> * n：将要拷贝数据的字节数</span></span><br><span class="line"><span class="comment"> * 成功返回0，失败返回没有拷贝成功的数据字节数。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">long</span> <span class="title">copy_to_user</span><span class="params">(<span class="type">void</span> *to, <span class="type">const</span> <span class="type">void</span> *from, <span class="type">unsigned</span> <span class="type">long</span> n)</span></span></span><br></pre></td></tr></table></figure></div>
+
+<h3 id="copy-from-user"><a href="#copy-from-user" class="headerlink" title="copy_from_user"></a>copy_from_user</h3><p>从用户空间中读取数据到内核空间。</p>
+<h4 id="函数定义-4"><a href="#函数定义-4" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * to：目标地址（内核空间）</span></span><br><span class="line"><span class="comment"> * from：源地址（用户空间）</span></span><br><span class="line"><span class="comment"> * n：将要拷贝数据的字节数</span></span><br><span class="line"><span class="comment"> * 成功返回0，失败返回没有拷贝成功的数据字节数。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">long</span> <span class="title">copy_from_user</span><span class="params">(<span class="type">void</span> *to, <span class="type">const</span> <span class="type">void</span> *from, <span class="type">unsigned</span> <span class="type">long</span> n)</span></span>;</span><br></pre></td></tr></table></figure></div>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux驱动设备树和设备匹配问题</title>
     <url>/2024/01/05/Linux%E9%A9%B1%E5%8A%A8%E8%AE%BE%E5%A4%87%E6%A0%91%E5%92%8C%E8%AE%BE%E5%A4%87%E5%8C%B9%E9%85%8D%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<h4 id="一、如何匹配设备？"><a href="#一、如何匹配设备？" class="headerlink" title="一、如何匹配设备？"></a>一、如何匹配设备？</h4><h5 id="1、传统匹配方式ID列表"><a href="#1、传统匹配方式ID列表" class="headerlink" title="1、传统匹配方式ID列表"></a>1、传统匹配方式ID列表</h5><p>这个列表中包含了设备的标识符，例如设备的厂商和型号等。在这里，我们只有一个成员：{“alientek,ap3216c”, 0}。这个字符串 “alientek,ap3216c” 是设备的兼容性字符串，用于识别设备。而0是一个标识符，可以用于在一个驱动程序中区分多个相同类型的设备。</p>
@@ -213,53 +165,47 @@
       </tags>
   </entry>
   <entry>
-    <title>ap3216c设备驱动开发流程</title>
-    <url>/2023/12/27/ap3216c%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
-    <content><![CDATA[<h4 id="一、修改设备树"><a href="#一、修改设备树" class="headerlink" title="一、修改设备树"></a>一、修改设备树</h4><p>在Ubuntu中进入板子内核源码目录，打开dts设备树文件，修改添加i2c设备数相关信息。</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">&amp;i2c1 &#123;</span><br><span class="line">	clock-frequency = &lt;<span class="number">100000</span>&gt;;</span><br><span class="line">	pinctrl-names = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">	pinctrl<span class="number">-0</span> = &lt;&amp;pinctrl_i2c1&gt;;</span><br><span class="line">	status = <span class="string">&quot;okay&quot;</span>;</span><br><span class="line"></span><br><span class="line">	ap3216c@<span class="number">1</span>e &#123;</span><br><span class="line">		compatible = <span class="string">&quot;alientek,ap3216c&quot;</span>;</span><br><span class="line">		reg = &lt;<span class="number">0x1e</span>&gt;;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-<p>定义了一个名为 i2c1 的 I2C 控制器节点，指定了以下属性：</p>
-<ol>
-<li>clock-frequency：指定 I2C 时钟频率为 100000 Hz。</li>
-<li>pinctrl-names：定义了 pinctrl 的名称为 “default”。</li>
-<li>pinctrl-0：指定了用于该 I2C 控制器的 pinctrl 配置为 pinctrl_i2c1。</li>
-<li>status：设备状态为 “okay”，表示设备正常。</li>
-</ol>
-<p>在 i2c1 控制器下面，定义了一个名为 ap3216c@1e 的节点，表示连接到 i2c1 控制器的 AP3216C 光传感器。该节点定义了以下属性：</p>
-<ol>
-<li>compatible：设备兼容性字符串，指定了设备的兼容性为 “alientek,ap3216c”。</li>
-<li>reg：设备的 I2C 地址为 &lt;0x1e&gt;。</li>
-</ol>
-<p>接着编译设备树文件，在内核中直接make，然后通过NFS 协议，将该设备树文件发送给板子，板子接受到后，将该设备树文件替换掉原来的设备树文件，重新启动板子，就实现了设备树的修改。</p>
-<h4 id="二、实现驱动程序框架"><a href="#二、实现驱动程序框架" class="headerlink" title="二、实现驱动程序框架"></a>二、实现驱动程序框架</h4><p>包括以下内容：<br><strong>设备结构体</strong>：ap3216c_dev，含有设备号、设备节点等<br><strong>i2c驱动结构体</strong>：i2c_driver ap3216c_driver，含有ap3216c_probe、ap3216c_remove、ap3216c_of_match、ap3216c_id<br><strong>ap3216c操作结构体</strong>：struct file_operations ap3216c_ops，包含open、release、read<br><strong>ap3216c_probe</strong>：i2c驱动的probe函数，当驱动与设备匹配以后此函数就会执行，包含构建设备号、注册设备、创建类、创建设备</p>
-<h4 id="三、实现ap3216c相关函数"><a href="#三、实现ap3216c相关函数" class="headerlink" title="三、实现ap3216c相关函数"></a>三、实现ap3216c相关函数</h4><p><strong>ap3216c_read_regs</strong>：用于读取多个寄存器，按照手册上i2c时序来实现<br><strong>ap3216c_write_regs</strong>：用于对多个寄存器写入数据，按照手册上i2c时序来实现<br><strong>ap3216c_readdata</strong>：用于读取ap3216c相关数据，通过查手册，按照手册上的寄存器读取方式来实现(两个寄存器控制一个参数，光照是16位，距离是8位)</p>
-<h4 id="四、实现makefile"><a href="#四、实现makefile" class="headerlink" title="四、实现makefile"></a>四、实现makefile</h4><p>执行 make 命令时，会调用 kernel_modules 目标，进而执行内核的 Makefile 中的 make modules 命令来编译内核模块。执行 make clean 命令会清理编译生成的文件。</p>
+    <title>Error: Spawn failed解决办法</title>
+    <url>/2023/12/17/Error-Spawn-failed%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="Solution1"><a href="#Solution1" class="headerlink" title="Solution1:"></a>Solution1:</h3><p>在创建的blog文件夹（即最早建的最大的文件夹）中找到_config.yml，把deploy板块中的repository换成ssh地址</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">repository: 此处填ssh地址</span><br></pre></td></tr></table></figure></div>
+<p>如果没有添加过密钥，则前往GitHub的个人设置（点击右上角头像旁边的小三角—&gt;settings)，点击SSH and GPG;在本地通过git生成密钥后再复制并添加到ssh keys中即可。</p>
+<h3 id="solution-2："><a href="#solution-2：" class="headerlink" title="solution 2："></a>solution 2：</h3><p>还是在blog文件夹下，删除名为.deploy_git的文件夹，在Windows下操作如下(打开cmd管理员模式)：</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">F:  (进入某盘)</span><br><span class="line">cd yourblog/  (进入你的博客文件夹)</span><br><span class="line">rd /s .deploy_git  (删除该文件)</span><br></pre></td></tr></table></figure></div>
+<p>然后在git命令行中执行</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure></div>
+<p>然后再走一遍流程</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo c</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure></div>
 ]]></content>
       <categories>
-        <category>嵌入式</category>
+        <category>问题解决</category>
       </categories>
       <tags>
-        <tag>嵌入式</tag>
+        <tag>问题解决</tag>
       </tags>
   </entry>
   <entry>
-    <title>icm20608设备驱动开发流程</title>
-    <url>/2024/01/01/icm20608%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
-    <content><![CDATA[<h3 id="SPI-设备驱动编写流程"><a href="#SPI-设备驱动编写流程" class="headerlink" title="SPI 设备驱动编写流程"></a>SPI 设备驱动编写流程</h3><h4 id="一、-IO-的-pinctrl-子节点创建与修改"><a href="#一、-IO-的-pinctrl-子节点创建与修改" class="headerlink" title="一、 IO 的 pinctrl 子节点创建与修改"></a>一、 IO 的 pinctrl 子节点创建与修改</h4><p>首先肯定是根据所使用的 IO 来创建或修改 pinctrl 子节点，要注意的就是检查相应的 IO 有没有被其他的设备所使用，如果有的话需要将其删除掉！</p>
-<h4 id="二、SPI-设备节点的创建与修改"><a href="#二、SPI-设备节点的创建与修改" class="headerlink" title="二、SPI 设备节点的创建与修改"></a>二、SPI 设备节点的创建与修改</h4><h5 id="1、添加-ICM20608-所使用的-IO"><a href="#1、添加-ICM20608-所使用的-IO" class="headerlink" title="1、添加 ICM20608 所使用的 IO"></a>1、添加 ICM20608 所使用的 IO</h5><p>和I2C类似，在 iomuxc 节点中添加一个新的子节点来描述 ICM20608 所使用的 SPI 引脚，子节点名字为 pinctrl_ecspi3。</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">pinctrl_ecspi3: icm20608 &#123;</span><br><span class="line">fsl,pins = &lt;</span><br><span class="line">MX6UL_PAD_UART2_TX_DATA__GPIO1_IO20 <span class="number">0x10b0</span> <span class="comment">/* CS */</span></span><br><span class="line">MX6UL_PAD_UART2_RX_DATA__ECSPI3_SCLK <span class="number">0x10b1</span> <span class="comment">/* SCLK */</span></span><br><span class="line">MX6UL_PAD_UART2_RTS_B__ECSPI3_MISO <span class="number">0x10b1</span> <span class="comment">/* MISO */</span></span><br><span class="line">MX6UL_PAD_UART2_CTS_B__ECSPI3_MOSI <span class="number">0x10b1</span> <span class="comment">/* MOSI */</span></span><br><span class="line">&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-<h5 id="2、在-ecspi3-节点追加-icm20608-子节点"><a href="#2、在-ecspi3-节点追加-icm20608-子节点" class="headerlink" title="2、在 ecspi3 节点追加 icm20608 子节点"></a>2、在 ecspi3 节点追加 icm20608 子节点</h5><div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">&amp;ecspi3 &#123;</span><br><span class="line">fsl,spi-num-chipselects = &lt;<span class="number">1</span>&gt;;</span><br><span class="line">cs-gpios = &lt;&amp;gpio1 <span class="number">20</span> GPIO_ACTIVE_LOW&gt;;</span><br><span class="line">pinctrl-names = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">pinctrl<span class="number">-0</span> = &lt;&amp;pinctrl_ecspi3&gt;;</span><br><span class="line">status = <span class="string">&quot;okay&quot;</span>;</span><br><span class="line"></span><br><span class="line">spidev: icm20608@<span class="number">0</span> &#123;</span><br><span class="line">    compatible = <span class="string">&quot;alientek,icm20608&quot;</span>;</span><br><span class="line">    spi-max-frequency = &lt;<span class="number">8000000</span>&gt;;</span><br><span class="line">    reg = &lt;<span class="number">0</span>&gt;;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-
-<h4 id="三、头文件"><a href="#三、头文件" class="headerlink" title="三、头文件"></a>三、头文件</h4><p>根据手册寄存器相关信息，定义一些ICM20608寄存器地址</p>
-<h4 id="四、调用Linux种SPI驱动API"><a href="#四、调用Linux种SPI驱动API" class="headerlink" title="四、调用Linux种SPI驱动API"></a>四、调用Linux种SPI驱动API</h4><p>构建spi_transfer，然后将其打包到spi_message里面，需要使用spi_init初始化spi_message，然后使用spi_message_add_tail将spi_transfer添加到spi_message中，最终使用spi_sync（同步）或spi_async（异步）来发送。</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">spi_transfer</span> &#123;</span></span><br><span class="line">    <span class="type">const</span> <span class="type">void</span> *tx_buf;  <span class="comment">//保存着要发送的数据</span></span><br><span class="line">    <span class="type">void</span> *rx_buf;        <span class="comment">//用于保存接收到的数据。</span></span><br><span class="line">    <span class="type">unsigned</span> len;</span><br><span class="line">...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-
-
-
-
-<h4 id="五、static-int-icm20608-read-regs函数实现"><a href="#五、static-int-icm20608-read-regs函数实现" class="headerlink" title="五、static int icm20608_read_regs函数实现"></a>五、static int icm20608_read_regs函数实现</h4><div class="highlight-container" data-rel="C++"><figure class="iseeu highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">int</span> <span class="title">icm20608_read_regs</span><span class="params">(<span class="keyword">struct</span> icm20608_dev *dev, u8 reg, <span class="type">void</span> *buf, <span class="type">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> txdata[len];</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_message</span> m;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_transfer</span> *t;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_device</span> *spi = (<span class="keyword">struct</span> spi_device *)dev-&gt;private_data;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//片选拉低</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//构建spi_transfer</span></span><br><span class="line">	t = <span class="built_in">kzalloc</span>(<span class="built_in">sizeof</span>(<span class="keyword">struct</span> spi_transfer), GFP_KERNEL);	</span><br><span class="line"></span><br><span class="line">	<span class="comment">//第一步：发送要读取的寄存器地址</span></span><br><span class="line">    txdata[<span class="number">0</span>] = reg | <span class="number">0x80</span>;</span><br><span class="line">    t-&gt;tx_buf = txdata;</span><br><span class="line">    t-&gt;len = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//第二步：读取数据</span></span><br><span class="line">    txdata[<span class="number">0</span>] = <span class="number">0xff</span>;</span><br><span class="line">    t-&gt;rx_buf = buf;</span><br><span class="line">    t-&gt;len = len;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//释放内存</span></span><br><span class="line">    <span class="built_in">kfree</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 另一种方式替代67-90，通过内核提供的函数  */</span></span><br><span class="line">    data = reg | <span class="number">0x80</span>;</span><br><span class="line">    <span class="built_in">spi_write</span>(spi, &amp;data, <span class="number">1</span>);  <span class="comment">//发送要读取的寄存器地址</span></span><br><span class="line">    <span class="built_in">spi_read</span>(spi, buf, len);   <span class="comment">//读取数据</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//片选拉高</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
-
-
-<h4 id="六、static-s32-icm20608-write-regs函数实现"><a href="#六、static-s32-icm20608-write-regs函数实现" class="headerlink" title="六、static s32 icm20608_write_regs函数实现"></a>六、static s32 icm20608_write_regs函数实现</h4><div class="highlight-container" data-rel="C++"><figure class="iseeu highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">int</span> <span class="title">icm20608_write_regs</span><span class="params">(<span class="keyword">struct</span> icm20608_dev *dev, u8 reg, <span class="type">void</span> *buf, <span class="type">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> txdata[len];</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_message</span> m;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_transfer</span> *t;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_device</span> *spi = (<span class="keyword">struct</span> spi_device *)dev-&gt;private_data;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//片选拉低</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//构建spi_transfer</span></span><br><span class="line">	t = <span class="built_in">kzalloc</span>(<span class="built_in">sizeof</span>(<span class="keyword">struct</span> spi_transfer), GFP_KERNEL);	</span><br><span class="line"></span><br><span class="line">	<span class="comment">//第一步：发送要写的寄存器地址</span></span><br><span class="line">    txdata[<span class="number">0</span>] = reg &amp; ~<span class="number">0x80</span>;</span><br><span class="line">    t-&gt;tx_buf = txdata;</span><br><span class="line">    t-&gt;len = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//第二步：读取数据</span></span><br><span class="line">    t-&gt;rx_buf = buf;</span><br><span class="line">    t-&gt;len = len;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//释放内存</span></span><br><span class="line">    <span class="built_in">kfree</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 另一种方式，通过内核提供的函数  */</span></span><br><span class="line">    data = reg | ~<span class="number">0x80</span>;</span><br><span class="line">    <span class="built_in">spi_write</span>(spi, &amp;data, <span class="number">1</span>);  <span class="comment">//发送要写的寄存器地址</span></span><br><span class="line">    <span class="built_in">spi_write</span>(spi, buf, len);   <span class="comment">//写数据</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//片选拉高</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+    <title>CAN总线难点</title>
+    <url>/2024/01/18/CAN%E6%80%BB%E7%BA%BF%E9%9A%BE%E7%82%B9/</url>
+    <content><![CDATA[<h3 id="带宽和速率管理："><a href="#带宽和速率管理：" class="headerlink" title="带宽和速率管理："></a>带宽和速率管理：</h3><p>CAN 总线通常用于连接多个节点，这些节点可能会发送大量的数据，<br>因此需要有效地管理带宽和数据传输速率。特别是在高速 CAN 中，<br>如何确保数据在高速传输中的可靠性和实时性是一个挑战。</p>
+<ol>
+<li>使用错误检测和纠正机制：CAN协议通常使用CRC（循环冗余校验）来检测数据传输中的错误，并且一些应用可能会使用更高级别的纠错码（如重复码或汉明码）来进行错误纠正。</li>
+<li>优先级机制：CAN协议支持消息的优先级。通过正确设置消息的优先级，可以确保重要数据优先发送，从而提高实时性。</li>
+</ol>
+<h3 id="网络管理和拓扑结构："><a href="#网络管理和拓扑结构：" class="headerlink" title="网络管理和拓扑结构："></a>网络管理和拓扑结构：</h3><p>设计一个复杂的 CAN 网络需要考虑节点之间的连接方式、拓扑结构和通信规则等。这涉及到网络拓扑设计、节点分配和通信规则制定等方面的工作。</p>
+<h3 id="故障诊断和容错机制："><a href="#故障诊断和容错机制：" class="headerlink" title="故障诊断和容错机制："></a>故障诊断和容错机制：</h3><ol>
+<li><p>自动重传机制：CAN总线上的节点在发送消息时，会监视总线上的确认位（ACK）。如果节点没有收到ACK，它将自动重试发送消息，直到收到ACK或者达到最大重试次数。这种机制确保了消息的可靠传输。</p>
+</li>
+<li><p>错误帧和错误报告：CAN总线上的节点会监视错误帧，这些错误帧会在总线上传输，用于表示数据传输过程中的错误。节点可以根据收到的错误帧来检测总线上的错误，并将错误信息报告给系统的上层。</p>
+</li>
+<li><p>错误标识符：CAN总线上的每个节点都有一个唯一的标识符（ID），用于识别消息的发送者和接收者。如果节点收到了具有错误标识符的消息，它将忽略该消息，并将错误信息报告给系统的上层。</p>
+</li>
+</ol>
+<h3 id="如何确保你的CAN发送和接收代码正确"><a href="#如何确保你的CAN发送和接收代码正确" class="headerlink" title="如何确保你的CAN发送和接收代码正确"></a>如何确保你的CAN发送和接收代码正确</h3><ol>
+<li>硬件连接：确认CAN控制器与CAN总线连接正确，确保电源、地线和信号线连接正确并且稳定。</li>
+<li>使用示波器或CAN分析仪：使用示波器或专用的CAN分析仪来监视CAN总线上的信号。你可以验证发送消息的波形是否正确，以及接收消息时是否出现预期的波形。</li>
+<li>通过电压表测试两根线之间的电压可以帮助你判断是否有数据发送。在CAN总线中，当节点发送数据时，会在总线上产生电压差，这可以通过测量两根线之间的电压来检测。</li>
+</ol>
 ]]></content>
       <categories>
         <category>嵌入式</category>
@@ -318,6 +264,88 @@
       </categories>
       <tags>
         <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>icm20608设备驱动开发流程</title>
+    <url>/2024/01/01/icm20608%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h3 id="SPI-设备驱动编写流程"><a href="#SPI-设备驱动编写流程" class="headerlink" title="SPI 设备驱动编写流程"></a>SPI 设备驱动编写流程</h3><h4 id="一、-IO-的-pinctrl-子节点创建与修改"><a href="#一、-IO-的-pinctrl-子节点创建与修改" class="headerlink" title="一、 IO 的 pinctrl 子节点创建与修改"></a>一、 IO 的 pinctrl 子节点创建与修改</h4><p>首先肯定是根据所使用的 IO 来创建或修改 pinctrl 子节点，要注意的就是检查相应的 IO 有没有被其他的设备所使用，如果有的话需要将其删除掉！</p>
+<h4 id="二、SPI-设备节点的创建与修改"><a href="#二、SPI-设备节点的创建与修改" class="headerlink" title="二、SPI 设备节点的创建与修改"></a>二、SPI 设备节点的创建与修改</h4><h5 id="1、添加-ICM20608-所使用的-IO"><a href="#1、添加-ICM20608-所使用的-IO" class="headerlink" title="1、添加 ICM20608 所使用的 IO"></a>1、添加 ICM20608 所使用的 IO</h5><p>和I2C类似，在 iomuxc 节点中添加一个新的子节点来描述 ICM20608 所使用的 SPI 引脚，子节点名字为 pinctrl_ecspi3。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">pinctrl_ecspi3: icm20608 &#123;</span><br><span class="line">fsl,pins = &lt;</span><br><span class="line">MX6UL_PAD_UART2_TX_DATA__GPIO1_IO20 <span class="number">0x10b0</span> <span class="comment">/* CS */</span></span><br><span class="line">MX6UL_PAD_UART2_RX_DATA__ECSPI3_SCLK <span class="number">0x10b1</span> <span class="comment">/* SCLK */</span></span><br><span class="line">MX6UL_PAD_UART2_RTS_B__ECSPI3_MISO <span class="number">0x10b1</span> <span class="comment">/* MISO */</span></span><br><span class="line">MX6UL_PAD_UART2_CTS_B__ECSPI3_MOSI <span class="number">0x10b1</span> <span class="comment">/* MOSI */</span></span><br><span class="line">&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<h5 id="2、在-ecspi3-节点追加-icm20608-子节点"><a href="#2、在-ecspi3-节点追加-icm20608-子节点" class="headerlink" title="2、在 ecspi3 节点追加 icm20608 子节点"></a>2、在 ecspi3 节点追加 icm20608 子节点</h5><div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">&amp;ecspi3 &#123;</span><br><span class="line">fsl,spi-num-chipselects = &lt;<span class="number">1</span>&gt;;</span><br><span class="line">cs-gpios = &lt;&amp;gpio1 <span class="number">20</span> GPIO_ACTIVE_LOW&gt;;</span><br><span class="line">pinctrl-names = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">pinctrl<span class="number">-0</span> = &lt;&amp;pinctrl_ecspi3&gt;;</span><br><span class="line">status = <span class="string">&quot;okay&quot;</span>;</span><br><span class="line"></span><br><span class="line">spidev: icm20608@<span class="number">0</span> &#123;</span><br><span class="line">    compatible = <span class="string">&quot;alientek,icm20608&quot;</span>;</span><br><span class="line">    spi-max-frequency = &lt;<span class="number">8000000</span>&gt;;</span><br><span class="line">    reg = &lt;<span class="number">0</span>&gt;;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+
+<h4 id="三、头文件"><a href="#三、头文件" class="headerlink" title="三、头文件"></a>三、头文件</h4><p>根据手册寄存器相关信息，定义一些ICM20608寄存器地址</p>
+<h4 id="四、调用Linux种SPI驱动API"><a href="#四、调用Linux种SPI驱动API" class="headerlink" title="四、调用Linux种SPI驱动API"></a>四、调用Linux种SPI驱动API</h4><p>构建spi_transfer，然后将其打包到spi_message里面，需要使用spi_init初始化spi_message，然后使用spi_message_add_tail将spi_transfer添加到spi_message中，最终使用spi_sync（同步）或spi_async（异步）来发送。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">spi_transfer</span> &#123;</span></span><br><span class="line">    <span class="type">const</span> <span class="type">void</span> *tx_buf;  <span class="comment">//保存着要发送的数据</span></span><br><span class="line">    <span class="type">void</span> *rx_buf;        <span class="comment">//用于保存接收到的数据。</span></span><br><span class="line">    <span class="type">unsigned</span> len;</span><br><span class="line">...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+
+
+
+
+<h4 id="五、static-int-icm20608-read-regs函数实现"><a href="#五、static-int-icm20608-read-regs函数实现" class="headerlink" title="五、static int icm20608_read_regs函数实现"></a>五、static int icm20608_read_regs函数实现</h4><div class="highlight-container" data-rel="C++"><figure class="iseeu highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">int</span> <span class="title">icm20608_read_regs</span><span class="params">(<span class="keyword">struct</span> icm20608_dev *dev, u8 reg, <span class="type">void</span> *buf, <span class="type">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> txdata[len];</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_message</span> m;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_transfer</span> *t;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_device</span> *spi = (<span class="keyword">struct</span> spi_device *)dev-&gt;private_data;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//片选拉低</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//构建spi_transfer</span></span><br><span class="line">	t = <span class="built_in">kzalloc</span>(<span class="built_in">sizeof</span>(<span class="keyword">struct</span> spi_transfer), GFP_KERNEL);	</span><br><span class="line"></span><br><span class="line">	<span class="comment">//第一步：发送要读取的寄存器地址</span></span><br><span class="line">    txdata[<span class="number">0</span>] = reg | <span class="number">0x80</span>;</span><br><span class="line">    t-&gt;tx_buf = txdata;</span><br><span class="line">    t-&gt;len = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//第二步：读取数据</span></span><br><span class="line">    txdata[<span class="number">0</span>] = <span class="number">0xff</span>;</span><br><span class="line">    t-&gt;rx_buf = buf;</span><br><span class="line">    t-&gt;len = len;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//释放内存</span></span><br><span class="line">    <span class="built_in">kfree</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 另一种方式替代67-90，通过内核提供的函数  */</span></span><br><span class="line">    data = reg | <span class="number">0x80</span>;</span><br><span class="line">    <span class="built_in">spi_write</span>(spi, &amp;data, <span class="number">1</span>);  <span class="comment">//发送要读取的寄存器地址</span></span><br><span class="line">    <span class="built_in">spi_read</span>(spi, buf, len);   <span class="comment">//读取数据</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//片选拉高</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+
+<h4 id="六、static-s32-icm20608-write-regs函数实现"><a href="#六、static-s32-icm20608-write-regs函数实现" class="headerlink" title="六、static s32 icm20608_write_regs函数实现"></a>六、static s32 icm20608_write_regs函数实现</h4><div class="highlight-container" data-rel="C++"><figure class="iseeu highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">int</span> <span class="title">icm20608_write_regs</span><span class="params">(<span class="keyword">struct</span> icm20608_dev *dev, u8 reg, <span class="type">void</span> *buf, <span class="type">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> txdata[len];</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_message</span> m;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_transfer</span> *t;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">spi_device</span> *spi = (<span class="keyword">struct</span> spi_device *)dev-&gt;private_data;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//片选拉低</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//构建spi_transfer</span></span><br><span class="line">	t = <span class="built_in">kzalloc</span>(<span class="built_in">sizeof</span>(<span class="keyword">struct</span> spi_transfer), GFP_KERNEL);	</span><br><span class="line"></span><br><span class="line">	<span class="comment">//第一步：发送要写的寄存器地址</span></span><br><span class="line">    txdata[<span class="number">0</span>] = reg &amp; ~<span class="number">0x80</span>;</span><br><span class="line">    t-&gt;tx_buf = txdata;</span><br><span class="line">    t-&gt;len = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//第二步：读取数据</span></span><br><span class="line">    t-&gt;rx_buf = buf;</span><br><span class="line">    t-&gt;len = len;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">spi_message_init</span>(&amp;m);</span><br><span class="line">    <span class="built_in">spi_message_add_tail</span>(t, &amp;m);</span><br><span class="line">    ret = <span class="built_in">spi_sync</span>(spi, &amp;m);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//释放内存</span></span><br><span class="line">    <span class="built_in">kfree</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 另一种方式，通过内核提供的函数  */</span></span><br><span class="line">    data = reg | ~<span class="number">0x80</span>;</span><br><span class="line">    <span class="built_in">spi_write</span>(spi, &amp;data, <span class="number">1</span>);  <span class="comment">//发送要写的寄存器地址</span></span><br><span class="line">    <span class="built_in">spi_write</span>(spi, buf, len);   <span class="comment">//写数据</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//片选拉高</span></span><br><span class="line">    <span class="built_in">gpio_set_value</span>(dev-&gt;cs_gpio, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CAN开发流程</title>
+    <url>/2024/01/23/CAN%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h3 id="修改设备树"><a href="#修改设备树" class="headerlink" title="修改设备树"></a>修改设备树</h3><h4 id="1、FlexCAN1-引脚节点信息"><a href="#1、FlexCAN1-引脚节点信息" class="headerlink" title="1、FlexCAN1 引脚节点信息"></a>1、FlexCAN1 引脚节点信息</h4><p>首先是 CAN1 引脚配置信息：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">pinctrl_flexcan1: flexcan1grp&#123;</span><br><span class="line">fsl,pins = &lt;</span><br><span class="line">MX6UL_PAD_UART3_RTS_B__FLEXCAN1_RX <span class="number">0x1b020</span></span><br><span class="line">MX6UL_PAD_UART3_CTS_B__FLEXCAN1_TX <span class="number">0x1b020</span></span><br><span class="line">&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+
+<h4 id="2、FlexCAN1-控制器节点信息"><a href="#2、FlexCAN1-控制器节点信息" class="headerlink" title="2、FlexCAN1 控制器节点信息"></a>2、FlexCAN1 控制器节点信息</h4><p>&amp;flexcan1 {<br>pinctrl-names &#x3D; “default”;<br>pinctrl-0 &#x3D; &lt;&amp;pinctrl_flexcan1&gt;;<br>xceiver-supply &#x3D; &lt;&amp;reg_can_3v3&gt;;<br>status &#x3D; “okay”;<br>};</p>
+<h4 id="3、使能-Linux-内核自带的-FlexCAN-驱动"><a href="#3、使能-Linux-内核自带的-FlexCAN-驱动" class="headerlink" title="3、使能 Linux 内核自带的 FlexCAN 驱动"></a>3、使能 Linux 内核自带的 FlexCAN 驱动</h4><ol>
+<li>使能 CAN 总线:首先打开 CAN 总线子系统，在 Linux 下 CAN 总线是作为网络子系统的，打开CAN bus subsystem support</li>
+<li>使能 Freescale 系 CPU 的 FlexCAN 外设驱动，</li>
+</ol>
+<h4 id="4、FlexCAN-测试"><a href="#4、FlexCAN-测试" class="headerlink" title="4、FlexCAN 测试"></a>4、FlexCAN 测试</h4><ol>
+<li>检查 CAN 网卡设备是否存在：ifconfig -a</li>
+<li>移植 iproute2</li>
+<li>移植 can-utils 工具</li>
+<li>回环测试：在一个板子上进行 CAN 回环测试，自己给自己发送数据并接受</li>
+</ol>
+<h4 id="5、应用程序"><a href="#5、应用程序" class="headerlink" title="5、应用程序"></a>5、应用程序</h4><div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">send_can_frame</span><span class="params">(<span class="type">int</span> s, <span class="type">int</span> can_id, <span class="type">int</span> can_data_len, <span class="type">unsigned</span> <span class="type">char</span>* can_data)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_can</span> <span class="title">addr</span>;</span>      <span class="comment">//用于存储与CAN设备相关的地址信息</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ifreq</span> <span class="title">ifr</span>;</span>              <span class="comment">//用于存储获取到的CAN设备的信息</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *ifname = <span class="string">&quot;can0&quot;</span>;   <span class="comment">// CAN 设备名称</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建套接字</span></span><br><span class="line">    <span class="keyword">if</span> ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error while opening socket&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 ioctl() 函数获取CAN设备的接口索引，并将其存储在 ifr.ifr_ifindex 中。</span></span><br><span class="line">    <span class="built_in">strcpy</span>(ifr.ifr_name, ifname);</span><br><span class="line">    ioctl(s, SIOCGIFINDEX, &amp;ifr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将套接字与 CAN 设备绑定</span></span><br><span class="line">    addr.can_family = AF_CAN;</span><br><span class="line">    addr.can_ifindex = ifr.ifr_ifindex;</span><br><span class="line">    <span class="keyword">if</span> (bind(s, (<span class="keyword">struct</span> sockaddr *)&amp;addr, <span class="keyword">sizeof</span>(addr)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error in socket bind&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 准备要发送的数据帧</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">can_frame</span> <span class="title">frame</span>;</span></span><br><span class="line">    frame.can_id = can_id;    <span class="comment">// CAN ID</span></span><br><span class="line">    frame.can_dlc = can_data_len;  <span class="comment">// 数据长度</span></span><br><span class="line">    <span class="built_in">memcpy</span>(frame.data, can_data, can_data_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发送数据帧</span></span><br><span class="line">    <span class="type">int</span> nbytes = write(s, &amp;frame, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> can_frame));</span><br><span class="line">    <span class="keyword">if</span> (nbytes != <span class="keyword">sizeof</span>(<span class="keyword">struct</span> can_frame)) &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error in sending CAN frame&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Sent CAN frame with ID 0x%03X\n&quot;</span>, frame.can_id);</span><br><span class="line"></span><br><span class="line">    close(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ap3216c设备驱动开发流程</title>
+    <url>/2023/12/27/ap3216c%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h4 id="一、修改设备树"><a href="#一、修改设备树" class="headerlink" title="一、修改设备树"></a>一、修改设备树</h4><p>在Ubuntu中进入板子内核源码目录，打开dts设备树文件，修改添加i2c设备数相关信息。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line">&amp;i2c1 &#123;</span><br><span class="line">	clock-frequency = &lt;<span class="number">100000</span>&gt;;</span><br><span class="line">	pinctrl-names = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">	pinctrl<span class="number">-0</span> = &lt;&amp;pinctrl_i2c1&gt;;</span><br><span class="line">	status = <span class="string">&quot;okay&quot;</span>;</span><br><span class="line"></span><br><span class="line">	ap3216c@<span class="number">1</span>e &#123;</span><br><span class="line">		compatible = <span class="string">&quot;alientek,ap3216c&quot;</span>;</span><br><span class="line">		reg = &lt;<span class="number">0x1e</span>&gt;;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>定义了一个名为 i2c1 的 I2C 控制器节点，指定了以下属性：</p>
+<ol>
+<li>clock-frequency：指定 I2C 时钟频率为 100000 Hz。</li>
+<li>pinctrl-names：定义了 pinctrl 的名称为 “default”。</li>
+<li>pinctrl-0：指定了用于该 I2C 控制器的 pinctrl 配置为 pinctrl_i2c1。</li>
+<li>status：设备状态为 “okay”，表示设备正常。</li>
+</ol>
+<p>在 i2c1 控制器下面，定义了一个名为 ap3216c@1e 的节点，表示连接到 i2c1 控制器的 AP3216C 光传感器。该节点定义了以下属性：</p>
+<ol>
+<li>compatible：设备兼容性字符串，指定了设备的兼容性为 “alientek,ap3216c”。</li>
+<li>reg：设备的 I2C 地址为 &lt;0x1e&gt;。</li>
+</ol>
+<p>接着编译设备树文件，在内核中直接make，然后通过NFS 协议，将该设备树文件发送给板子，板子接受到后，将该设备树文件替换掉原来的设备树文件，重新启动板子，就实现了设备树的修改。</p>
+<h4 id="二、实现驱动程序框架"><a href="#二、实现驱动程序框架" class="headerlink" title="二、实现驱动程序框架"></a>二、实现驱动程序框架</h4><p>包括以下内容：<br><strong>设备结构体</strong>：ap3216c_dev，含有设备号、设备节点等<br><strong>i2c驱动结构体</strong>：i2c_driver ap3216c_driver，含有ap3216c_probe、ap3216c_remove、ap3216c_of_match、ap3216c_id<br><strong>ap3216c操作结构体</strong>：struct file_operations ap3216c_ops，包含open、release、read<br><strong>ap3216c_probe</strong>：i2c驱动的probe函数，当驱动与设备匹配以后此函数就会执行，包含构建设备号、注册设备、创建类、创建设备</p>
+<h4 id="三、实现ap3216c相关函数"><a href="#三、实现ap3216c相关函数" class="headerlink" title="三、实现ap3216c相关函数"></a>三、实现ap3216c相关函数</h4><p><strong>ap3216c_read_regs</strong>：用于读取多个寄存器，按照手册上i2c时序来实现<br><strong>ap3216c_write_regs</strong>：用于对多个寄存器写入数据，按照手册上i2c时序来实现<br><strong>ap3216c_readdata</strong>：用于读取ap3216c相关数据，通过查手册，按照手册上的寄存器读取方式来实现(两个寄存器控制一个参数，光照是16位，距离是8位)</p>
+<h4 id="四、实现makefile"><a href="#四、实现makefile" class="headerlink" title="四、实现makefile"></a>四、实现makefile</h4><p>执行 make 命令时，会调用 kernel_modules 目标，进而执行内核的 Makefile 中的 make modules 命令来编译内核模块。执行 make clean 命令会清理编译生成的文件。</p>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
       </tags>
   </entry>
   <entry>
