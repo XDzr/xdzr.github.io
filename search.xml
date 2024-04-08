@@ -27,6 +27,26 @@
       </tags>
   </entry>
   <entry>
+    <title>Error: Spawn failed解决办法</title>
+    <url>/2023/12/17/Error-Spawn-failed%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="Solution1"><a href="#Solution1" class="headerlink" title="Solution1:"></a>Solution1:</h3><p>在创建的blog文件夹（即最早建的最大的文件夹）中找到_config.yml，把deploy板块中的repository换成ssh地址</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">repository: 此处填ssh地址</span><br></pre></td></tr></table></figure></div>
+<p>如果没有添加过密钥，则前往GitHub的个人设置（点击右上角头像旁边的小三角—&gt;settings)，点击SSH and GPG;在本地通过git生成密钥后再复制并添加到ssh keys中即可。</p>
+<h3 id="solution-2："><a href="#solution-2：" class="headerlink" title="solution 2："></a>solution 2：</h3><p>还是在blog文件夹下，删除名为.deploy_git的文件夹，在Windows下操作如下(打开cmd管理员模式)：</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">F:  (进入某盘)</span><br><span class="line">cd yourblog/  (进入你的博客文件夹)</span><br><span class="line">rd /s .deploy_git  (删除该文件)</span><br></pre></td></tr></table></figure></div>
+<p>然后在git命令行中执行</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure></div>
+<p>然后再走一遍流程</p>
+<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo c</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure></div>
+]]></content>
+      <categories>
+        <category>问题解决</category>
+      </categories>
+      <tags>
+        <tag>问题解决</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CAN总线难点</title>
     <url>/2024/01/18/CAN%E6%80%BB%E7%BA%BF%E9%9A%BE%E7%82%B9/</url>
     <content><![CDATA[<h3 id="带宽和速率管理："><a href="#带宽和速率管理：" class="headerlink" title="带宽和速率管理："></a>带宽和速率管理：</h3><p>CAN 总线通常用于连接多个节点，这些节点可能会发送大量的数据，<br>因此需要有效地管理带宽和数据传输速率。特别是在高速 CAN 中，<br>如何确保数据在高速传输中的可靠性和实时性是一个挑战。</p>
@@ -57,23 +77,49 @@
       </tags>
   </entry>
   <entry>
-    <title>Error: Spawn failed解决办法</title>
-    <url>/2023/12/17/Error-Spawn-failed%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</url>
-    <content><![CDATA[<h3 id="Solution1"><a href="#Solution1" class="headerlink" title="Solution1:"></a>Solution1:</h3><p>在创建的blog文件夹（即最早建的最大的文件夹）中找到_config.yml，把deploy板块中的repository换成ssh地址</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">repository: 此处填ssh地址</span><br></pre></td></tr></table></figure></div>
-<p>如果没有添加过密钥，则前往GitHub的个人设置（点击右上角头像旁边的小三角—&gt;settings)，点击SSH and GPG;在本地通过git生成密钥后再复制并添加到ssh keys中即可。</p>
-<h3 id="solution-2："><a href="#solution-2：" class="headerlink" title="solution 2："></a>solution 2：</h3><p>还是在blog文件夹下，删除名为.deploy_git的文件夹，在Windows下操作如下(打开cmd管理员模式)：</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">F:  (进入某盘)</span><br><span class="line">cd yourblog/  (进入你的博客文件夹)</span><br><span class="line">rd /s .deploy_git  (删除该文件)</span><br></pre></td></tr></table></figure></div>
-<p>然后在git命令行中执行</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure></div>
-<p>然后再走一遍流程</p>
-<div class="highlight-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo c</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure></div>
+    <title>Linux下查看内存使用情况方法</title>
+    <url>/2024/02/01/Linux%E4%B8%8B%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="1、atop"><a href="#1、atop" class="headerlink" title="1、atop"></a>1、atop</h3><p>atop命令是一个终端环境的监控命令。它显示的是各种系统资源（CPU, memory, network, I&#x2F;O, kernel）的综合，并且在高负载的情况下进行了彩色标注。<br>$ sudo atop</p>
+<h3 id="2、free"><a href="#2、free" class="headerlink" title="2、free"></a>2、free</h3><p>free命令是一个快速查看内存使用情况的方法，它是对 &#x2F;proc&#x2F;meminfo 收集到的信息的一个概述。<br>$ free -h</p>
+<h3 id="3、htop"><a href="#3、htop" class="headerlink" title="3、htop"></a>3、htop</h3><p>htop命令显示了每个进程的内存实时使用率。它提供了所有进程的常驻内存大小、程序总内存大小、共享库大小等的报告。列表可以水平及垂直滚动。<br>$ htop</p>
+<h3 id="4、ps"><a href="#4、ps" class="headerlink" title="4、ps"></a>4、ps</h3><p>ps命令可以实时的显示各个进程的内存使用情况。Reported memory usage information includes %MEM (percent of physical memory used), VSZ (total amount of virtual memory used), and RSS (total amount of physical memory used)。你可以使用 “–sort”选项对进程进行排序，例如按RSS进行排序：<br>$ ps aux –sort -rss</p>
+<h3 id="5、11-top"><a href="#5、11-top" class="headerlink" title="5、11.top"></a>5、11.top</h3><p>top命令提供了实时的运行中的程序的资源使用统计。你可以根据内存的使用和大小来进行排序。<br>$ top</p>
 ]]></content>
       <categories>
-        <category>问题解决</category>
+        <category>Linux</category>
       </categories>
       <tags>
-        <tag>问题解决</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux下驱动和应用之间的联系</title>
+    <url>/2024/01/22/Linux%E4%B8%8B%E9%A9%B1%E5%8A%A8%E5%92%8C%E5%BA%94%E7%94%A8%E4%B9%8B%E9%97%B4%E7%9A%84%E8%81%94%E7%B3%BB/</url>
+    <content><![CDATA[<h2 id="一、在Linux下，驱动程序是如何与应用程序相联系的"><a href="#一、在Linux下，驱动程序是如何与应用程序相联系的" class="headerlink" title="一、在Linux下，驱动程序是如何与应用程序相联系的"></a>一、在Linux下，驱动程序是如何与应用程序相联系的</h2><h3 id="创建设备文件："><a href="#创建设备文件：" class="headerlink" title="创建设备文件："></a>创建设备文件：</h3><p>在驱动程序的 probe 函数中，会调用函数 device_create() 来创建设备文件，该函数会在 &#x2F;dev 目录下创建一个设备文件，使得应用程序可以通过该设备文件与驱动程序进行通信。</p>
+<h3 id="打开设备文件："><a href="#打开设备文件：" class="headerlink" title="打开设备文件："></a>打开设备文件：</h3><p>应用程序可以使用系统调用 open() 打开设备文件，获取与之关联的文件描述符。在驱动程序中，当调用 open 函数时，内核会调用驱动程序中的 open 函数，从而进行设备的初始化等操作。</p>
+<h3 id="读写设备文件："><a href="#读写设备文件：" class="headerlink" title="读写设备文件："></a>读写设备文件：</h3><p>应用程序可以使用系统调用 read() 和 write() 来读写设备文件。在驱动程序中，当应用程序调用 read() 或 write() 函数时，内核会调用驱动程序中相应的读取或写入函数，从而对设备进行相应的读写操作。</p>
+<h3 id="关闭设备文件："><a href="#关闭设备文件：" class="headerlink" title="关闭设备文件："></a>关闭设备文件：</h3><p>应用程序可以使用系统调用 close() 关闭设备文件。在驱动程序中，当应用程序调用 close() 函数时，内核会调用驱动程序中的 release 函数，执行设备的释放操作。</p>
+<h2 id="二、为什么I2C和SPI等要分为适配器驱动和设备驱动？"><a href="#二、为什么I2C和SPI等要分为适配器驱动和设备驱动？" class="headerlink" title="二、为什么I2C和SPI等要分为适配器驱动和设备驱动？"></a>二、为什么I2C和SPI等要分为适配器驱动和设备驱动？</h2><h3 id="设备驱动："><a href="#设备驱动：" class="headerlink" title="设备驱动："></a>设备驱动：</h3><ol>
+<li>设备驱动是针对具体的I2C、SPI设备编写的，用于控制和管理这些设备。</li>
+<li>设备驱动通常由硬件设备的制造商或硬件厂商的工程师编写，因为他们了解设备的规格和特性。</li>
+<li>设备驱动负责处理与设备相关的操作，如数据的读写、寄存器的设置等。</li>
+</ol>
+<h3 id="适配器驱动："><a href="#适配器驱动：" class="headerlink" title="适配器驱动："></a>适配器驱动：</h3><ol>
+<li>适配器驱动是针对I2C、SPI等总线控制器的驱动程序，用于管理总线控制器的操作。</li>
+<li>适配器驱动通常由Linux内核开发人员或芯片厂商提供，并包含在Linux内核中。</li>
+<li>适配器驱动负责与硬件总线控制器进行通信，控制总线的初始化、数据传输等操作。</li>
+</ol>
+<h3 id="原因："><a href="#原因：" class="headerlink" title="原因："></a>原因：</h3><ol>
+<li>设备驱动与具体的设备相关联，因此将设备驱动分离出来，便于管理和维护。</li>
+<li>适配器驱动管理总线控制器，因此与硬件平台相关联，通常由操作系统或芯片厂商提供，以确保与硬件的兼容性和稳定性。</li>
+<li>这种分离的设计使得Linux内核的驱动开发更加灵活，可以针对不同的设备和硬件平台编写对应的驱动程序，并且能够在不同的硬件上实现相同的接口和功能。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
       </tags>
   </entry>
   <entry>
@@ -167,6 +213,25 @@
 
 <h3 id="copy-from-user"><a href="#copy-from-user" class="headerlink" title="copy_from_user"></a>copy_from_user</h3><p>从用户空间中读取数据到内核空间。</p>
 <h4 id="函数定义-4"><a href="#函数定义-4" class="headerlink" title="函数定义"></a>函数定义</h4><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * to：目标地址（内核空间）</span></span><br><span class="line"><span class="comment"> * from：源地址（用户空间）</span></span><br><span class="line"><span class="comment"> * n：将要拷贝数据的字节数</span></span><br><span class="line"><span class="comment"> * 成功返回0，失败返回没有拷贝成功的数据字节数。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">long</span> <span class="title">copy_from_user</span><span class="params">(<span class="type">void</span> *to, <span class="type">const</span> <span class="type">void</span> *from, <span class="type">unsigned</span> <span class="type">long</span> n)</span></span>;</span><br></pre></td></tr></table></figure></div>
+]]></content>
+      <categories>
+        <category>嵌入式</category>
+      </categories>
+      <tags>
+        <tag>嵌入式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux驱动设备树和设备匹配问题</title>
+    <url>/2024/01/05/Linux%E9%A9%B1%E5%8A%A8%E8%AE%BE%E5%A4%87%E6%A0%91%E5%92%8C%E8%AE%BE%E5%A4%87%E5%8C%B9%E9%85%8D%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h4 id="一、如何匹配设备？"><a href="#一、如何匹配设备？" class="headerlink" title="一、如何匹配设备？"></a>一、如何匹配设备？</h4><h5 id="1、传统匹配方式ID列表"><a href="#1、传统匹配方式ID列表" class="headerlink" title="1、传统匹配方式ID列表"></a>1、传统匹配方式ID列表</h5><p>这个列表中包含了设备的标识符，例如设备的厂商和型号等。在这里，我们只有一个成员：{“alientek,ap3216c”, 0}。这个字符串 “alientek,ap3216c” 是设备的兼容性字符串，用于识别设备。而0是一个标识符，可以用于在一个驱动程序中区分多个相同类型的设备。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 传统匹配方式ID列表 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">i2c_device_id</span> <span class="title">ap3216c_id</span>[] =</span> &#123;</span><br><span class="line">	&#123;<span class="string">&quot;alientek,ap3216c&quot;</span>, <span class="number">0</span>&#125;,  </span><br><span class="line">	&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>当驱动加载时，内核会遍历 ap3216c_id[] 中的每个成员。<br>对于每个成员，内核会将其与<strong>已连接的设备</strong>进行比较。<br>如果匹配成功（例如设备的 compatible 属性与列表中的字符串匹配），则使用该标识符与设备进行匹配。<br>匹配成功后，内核会调用 probe 函数并传递匹配成功的 i2c_client 结构体和匹配的标识符。</p>
+<h5 id="2、设备树匹配列表"><a href="#2、设备树匹配列表" class="headerlink" title="2、设备树匹配列表"></a>2、设备树匹配列表</h5><p>这个列表用于与设备树中的设备节点匹配。在设备树中，每个设备节点都会包含一个 compatible 属性，用于描述设备的兼容性。在这里，我们也只有一个成员：{ .compatible &#x3D; “alientek,ap3216c” }。这个字符串和传统匹配方式中的一样，用于描述设备的兼容性。</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 设备树匹配列表 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">of_device_id</span> <span class="title">ap3216c_of_match</span>[] =</span> &#123;</span><br><span class="line">	&#123; .compatible = <span class="string">&quot;alientek,ap3216c&quot;</span> &#125;,</span><br><span class="line">	&#123; <span class="comment">/* Sentinel */</span> &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>内核会在设备树中查找所有的设备节点，并查看每个节点的 compatible 属性。<br>对于 ap3216c_of_match[] 中的每个成员，内核会将其与<strong>设备节点</strong>的 compatible 属性进行比较。<br>如果设备树中存在一个节点的 compatible 属性与列表中的字符串匹配，则内核认为找到了匹配的设备。<br>匹配成功后，内核会创建对应的 i2c_client 结构体，并调用 probe 函数并传递该结构体。</p>
+<h4 id="二、为什么会同时使用这两种方式？"><a href="#二、为什么会同时使用这两种方式？" class="headerlink" title="二、为什么会同时使用这两种方式？"></a>二、为什么会同时使用这两种方式？</h4><p><strong>兼容性</strong>：使用两种方式可以增加驱动的兼容性，使其可以适应不同的硬件配置和平台。某些设备可能没有设备树信息，但可以使用传统匹配方式，而另一些可能只能通过设备树进行匹配。</p>
+<p><strong>平台支持</strong>：在不同的平台上，驱动可能需要适配不同的设备树结构。有些平台可能更倾向于使用设备树匹配方式，而另一些可能更倾向于传统匹配方式。因此，同时使用两种方式可以提高驱动在各种平台上的适应性。</p>
 ]]></content>
       <categories>
         <category>嵌入式</category>
@@ -314,71 +379,6 @@
     <content><![CDATA[<h3 id="1、十六进制字符转整型数字"><a href="#1、十六进制字符转整型数字" class="headerlink" title="1、十六进制字符转整型数字"></a>1、十六进制字符转整型数字</h3><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*=============================================================================</span></span><br><span class="line"><span class="comment">功能：将16进制的字符串转换为10进制的数字</span></span><br><span class="line"><span class="comment">常用的函数有atoi,atol,他们都是将10进制的数字字符串转换为int或是long类型，所以在有些情况下不适用。</span></span><br><span class="line"><span class="comment">=============================================================================*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="comment">//该函数用于将单个十六进制的字符转为10进制数</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">c2i</span><span class="params">(<span class="type">char</span> ch)</span> </span>&#123;  </span><br><span class="line">    <span class="comment">// 如果是数字，则用数字的ASCII码减去48, 如果ch = &#x27;2&#x27; ,则 &#x27;2&#x27; - 48 = 2  </span></span><br><span class="line">    <span class="comment">// isdigit(ch)用于判断字符 ch 是否是一个数字字符的函数</span></span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">isdigit</span>(ch))  </span><br><span class="line">       <span class="keyword">return</span> ch - <span class="number">48</span>;  </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 如果是字母，但不是A~F,a~f则返回  </span></span><br><span class="line">    <span class="keyword">if</span>( ch &lt; <span class="string">&#x27;A&#x27;</span> || (ch &gt; <span class="string">&#x27;F&#x27;</span> &amp;&amp; ch &lt; <span class="string">&#x27;a&#x27;</span>) || ch &gt; <span class="string">&#x27;z&#x27;</span> )  </span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;  </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 如果是大写字母，则用数字的ASCII码减去55, 如果ch = &#x27;A&#x27; ,则 &#x27;A&#x27; - 55 = 10  </span></span><br><span class="line">    <span class="comment">// 如果是小写字母，则用数字的ASCII码减去87, 如果ch = &#x27;a&#x27; ,则 &#x27;a&#x27; - 87 = 10  </span></span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">isalpha</span>(ch))  </span><br><span class="line">       <span class="keyword">return</span> <span class="built_in">isupper</span>(ch) ? ch - <span class="number">55</span> : ch - <span class="number">87</span>;  </span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;  </span><br><span class="line">&#125; </span><br><span class="line"><span class="comment">//该函数用于将16进制字符串转为十进制数</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">hex2dec</span><span class="params">(<span class="type">char</span> *hex)</span> </span>&#123;  </span><br><span class="line">    <span class="type">int</span> len;  </span><br><span class="line">    <span class="type">int</span> num = <span class="number">0</span>;  </span><br><span class="line">    <span class="type">int</span> temp;  </span><br><span class="line">    <span class="type">int</span> bits;  </span><br><span class="line">    <span class="type">int</span> i;  </span><br><span class="line">    <span class="type">char</span> str[<span class="number">64</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span>(<span class="literal">NULL</span> == hex) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;input para error \n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果输入的字符串以 &quot;0x&quot; 或 &quot;0X&quot; 开头，则去除这个前缀</span></span><br><span class="line">    <span class="keyword">if</span>((<span class="string">&#x27;0&#x27;</span>== hex[<span class="number">0</span>]) &amp;&amp; ((<span class="string">&#x27;X&#x27;</span> == hex[<span class="number">1</span>]) || (<span class="string">&#x27;x&#x27;</span> == hex[<span class="number">1</span>]))) &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(str, &amp;hex[<span class="number">2</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(str, hex);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;input num = %s \n&quot;</span>, str);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 获取字符串长度</span></span><br><span class="line">    len = <span class="built_in">strlen</span>(str);  </span><br><span class="line"> </span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>, temp = <span class="number">0</span>; i &lt; len; i++, temp = <span class="number">0</span>) &#123;  </span><br><span class="line">        <span class="comment">// 调用 c2i 函数将十六进制字符转换为对应的十进制数值</span></span><br><span class="line">        temp = <span class="built_in">c2i</span>( *(str + i) );  </span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 一个十六进制位对应 4 位二进制位，需要左移相应的位数</span></span><br><span class="line">        bits = (len - i - <span class="number">1</span>) * <span class="number">4</span>;  </span><br><span class="line">        temp = temp &lt;&lt; bits;  </span><br><span class="line">    </span><br><span class="line">        <span class="comment">// 使用按位或操作将每个字节的值合并到最终结果中</span></span><br><span class="line">        num = num | temp;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">return</span> num;  </span><br><span class="line">&#125; </span><br><span class="line"></span><br></pre></td></tr></table></figure></div>
 
 <h3 id="2、字符串转整型"><a href="#2、字符串转整型" class="headerlink" title="2、字符串转整型"></a>2、字符串转整型</h3><div class="highlight-container" data-rel="Cpp"><figure class="iseeu highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*=============================================================================</span></span><br><span class="line"><span class="comment">功能：将正常输入的16进制或是10进制的字符串转换为int数据类型。</span></span><br><span class="line"><span class="comment">=============================================================================*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">String2int</span><span class="params">(<span class="type">char</span> *strChar)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> len = <span class="number">0</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *pstrCmp1 = <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *pstrCmp2 = <span class="string">&quot;0123456789abcdef&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> *pstr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="type">int</span> uiValue = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> j = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> t = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">NULL</span> == strChar)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 检查字符串的长度，并且在长度小于等于 0 的情况下返回 -1。</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &gt;= (len = <span class="built_in">strlen</span>((<span class="type">const</span> <span class="type">char</span> *)strChar)))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// strstr是查找子字符串的函数调用，判断字符串是否以 &quot;0x&quot; 或 &quot;0X&quot; 开头</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">NULL</span> != (pstr = <span class="built_in">strstr</span>(strChar, <span class="string">&quot;0x&quot;</span>)) || <span class="literal">NULL</span> != (pstr = <span class="built_in">strstr</span>(strChar, <span class="string">&quot;0X&quot;</span>))) &#123;</span><br><span class="line">        <span class="comment">// 将指针 pstr 移动到真正的十六进制数的起始位置（去掉 &quot;0x&quot; 或 &quot;0X&quot;）</span></span><br><span class="line">        pstr = (<span class="type">char</span> *)strChar + <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="number">0</span> &gt;= (len = <span class="built_in">strlen</span>((<span class="type">const</span> <span class="type">char</span> *)pstr)))</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (i = (len - <span class="number">1</span>); i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="keyword">if</span> (pstr[i] &gt; <span class="string">&#x27;F&#x27;</span>) &#123;</span><br><span class="line">                <span class="comment">// 如果字符大于 &#x27;F&#x27;，说明是小写十六进制字符，会在 pstrCmp2 中查找对应字符的位置 t，然后将对应的值左移 j 位（每个十六进制数需要占据 4 位），并将这个值按位或（|）到 uiValue 中。</span></span><br><span class="line">                <span class="keyword">for</span> (t = <span class="number">0</span>; t &lt; <span class="built_in">strlen</span>((<span class="type">const</span> <span class="type">char</span> *)pstrCmp2); t++) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (pstrCmp2[t] == pstr[i])</span><br><span class="line">                        uiValue |= (t &lt;&lt; (j++ * <span class="number">4</span>));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 如果字符不大于 &#x27;F&#x27;，说明是大写十六进制字符，会在 pstrCmp1 中查找对应字符的位置 t，然后同样左移 j 位并按位或到 uiValue 中。</span></span><br><span class="line">                <span class="keyword">for</span> (t = <span class="number">0</span>; t &lt; <span class="built_in">strlen</span>((<span class="type">const</span> <span class="type">char</span> *)pstrCmp1); t++) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (pstrCmp1[t] == pstr[i])</span><br><span class="line">                        uiValue |= (t &lt;&lt; (j++ * <span class="number">4</span>));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 使用 atoi 函数将其转换为整数</span></span><br><span class="line">        uiValue = <span class="built_in">atoi</span>((<span class="type">const</span> <span class="type">char</span> *)strChar);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> uiValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>]]></content>
-      <categories>
-        <category>嵌入式</category>
-      </categories>
-      <tags>
-        <tag>嵌入式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux下查看内存使用情况方法</title>
-    <url>/2024/02/01/Linux%E4%B8%8B%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h3 id="1、atop"><a href="#1、atop" class="headerlink" title="1、atop"></a>1、atop</h3><p>atop命令是一个终端环境的监控命令。它显示的是各种系统资源（CPU, memory, network, I&#x2F;O, kernel）的综合，并且在高负载的情况下进行了彩色标注。<br>$ sudo atop</p>
-<h3 id="2、free"><a href="#2、free" class="headerlink" title="2、free"></a>2、free</h3><p>free命令是一个快速查看内存使用情况的方法，它是对 &#x2F;proc&#x2F;meminfo 收集到的信息的一个概述。<br>$ free -h</p>
-<h3 id="3、htop"><a href="#3、htop" class="headerlink" title="3、htop"></a>3、htop</h3><p>htop命令显示了每个进程的内存实时使用率。它提供了所有进程的常驻内存大小、程序总内存大小、共享库大小等的报告。列表可以水平及垂直滚动。<br>$ htop</p>
-<h3 id="4、ps"><a href="#4、ps" class="headerlink" title="4、ps"></a>4、ps</h3><p>ps命令可以实时的显示各个进程的内存使用情况。Reported memory usage information includes %MEM (percent of physical memory used), VSZ (total amount of virtual memory used), and RSS (total amount of physical memory used)。你可以使用 “–sort”选项对进程进行排序，例如按RSS进行排序：<br>$ ps aux –sort -rss</p>
-<h3 id="5、11-top"><a href="#5、11-top" class="headerlink" title="5、11.top"></a>5、11.top</h3><p>top命令提供了实时的运行中的程序的资源使用统计。你可以根据内存的使用和大小来进行排序。<br>$ top</p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux下驱动和应用之间的联系</title>
-    <url>/2024/01/22/Linux%E4%B8%8B%E9%A9%B1%E5%8A%A8%E5%92%8C%E5%BA%94%E7%94%A8%E4%B9%8B%E9%97%B4%E7%9A%84%E8%81%94%E7%B3%BB/</url>
-    <content><![CDATA[<h2 id="一、在Linux下，驱动程序是如何与应用程序相联系的"><a href="#一、在Linux下，驱动程序是如何与应用程序相联系的" class="headerlink" title="一、在Linux下，驱动程序是如何与应用程序相联系的"></a>一、在Linux下，驱动程序是如何与应用程序相联系的</h2><h3 id="创建设备文件："><a href="#创建设备文件：" class="headerlink" title="创建设备文件："></a>创建设备文件：</h3><p>在驱动程序的 probe 函数中，会调用函数 device_create() 来创建设备文件，该函数会在 &#x2F;dev 目录下创建一个设备文件，使得应用程序可以通过该设备文件与驱动程序进行通信。</p>
-<h3 id="打开设备文件："><a href="#打开设备文件：" class="headerlink" title="打开设备文件："></a>打开设备文件：</h3><p>应用程序可以使用系统调用 open() 打开设备文件，获取与之关联的文件描述符。在驱动程序中，当调用 open 函数时，内核会调用驱动程序中的 open 函数，从而进行设备的初始化等操作。</p>
-<h3 id="读写设备文件："><a href="#读写设备文件：" class="headerlink" title="读写设备文件："></a>读写设备文件：</h3><p>应用程序可以使用系统调用 read() 和 write() 来读写设备文件。在驱动程序中，当应用程序调用 read() 或 write() 函数时，内核会调用驱动程序中相应的读取或写入函数，从而对设备进行相应的读写操作。</p>
-<h3 id="关闭设备文件："><a href="#关闭设备文件：" class="headerlink" title="关闭设备文件："></a>关闭设备文件：</h3><p>应用程序可以使用系统调用 close() 关闭设备文件。在驱动程序中，当应用程序调用 close() 函数时，内核会调用驱动程序中的 release 函数，执行设备的释放操作。</p>
-<h2 id="二、为什么I2C和SPI等要分为适配器驱动和设备驱动？"><a href="#二、为什么I2C和SPI等要分为适配器驱动和设备驱动？" class="headerlink" title="二、为什么I2C和SPI等要分为适配器驱动和设备驱动？"></a>二、为什么I2C和SPI等要分为适配器驱动和设备驱动？</h2><h3 id="设备驱动："><a href="#设备驱动：" class="headerlink" title="设备驱动："></a>设备驱动：</h3><ol>
-<li>设备驱动是针对具体的I2C、SPI设备编写的，用于控制和管理这些设备。</li>
-<li>设备驱动通常由硬件设备的制造商或硬件厂商的工程师编写，因为他们了解设备的规格和特性。</li>
-<li>设备驱动负责处理与设备相关的操作，如数据的读写、寄存器的设置等。</li>
-</ol>
-<h3 id="适配器驱动："><a href="#适配器驱动：" class="headerlink" title="适配器驱动："></a>适配器驱动：</h3><ol>
-<li>适配器驱动是针对I2C、SPI等总线控制器的驱动程序，用于管理总线控制器的操作。</li>
-<li>适配器驱动通常由Linux内核开发人员或芯片厂商提供，并包含在Linux内核中。</li>
-<li>适配器驱动负责与硬件总线控制器进行通信，控制总线的初始化、数据传输等操作。</li>
-</ol>
-<h3 id="原因："><a href="#原因：" class="headerlink" title="原因："></a>原因：</h3><ol>
-<li>设备驱动与具体的设备相关联，因此将设备驱动分离出来，便于管理和维护。</li>
-<li>适配器驱动管理总线控制器，因此与硬件平台相关联，通常由操作系统或芯片厂商提供，以确保与硬件的兼容性和稳定性。</li>
-<li>这种分离的设计使得Linux内核的驱动开发更加灵活，可以针对不同的设备和硬件平台编写对应的驱动程序，并且能够在不同的硬件上实现相同的接口和功能。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>嵌入式</category>
-      </categories>
-      <tags>
-        <tag>嵌入式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux驱动设备树和设备匹配问题</title>
-    <url>/2024/01/05/Linux%E9%A9%B1%E5%8A%A8%E8%AE%BE%E5%A4%87%E6%A0%91%E5%92%8C%E8%AE%BE%E5%A4%87%E5%8C%B9%E9%85%8D%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<h4 id="一、如何匹配设备？"><a href="#一、如何匹配设备？" class="headerlink" title="一、如何匹配设备？"></a>一、如何匹配设备？</h4><h5 id="1、传统匹配方式ID列表"><a href="#1、传统匹配方式ID列表" class="headerlink" title="1、传统匹配方式ID列表"></a>1、传统匹配方式ID列表</h5><p>这个列表中包含了设备的标识符，例如设备的厂商和型号等。在这里，我们只有一个成员：{“alientek,ap3216c”, 0}。这个字符串 “alientek,ap3216c” 是设备的兼容性字符串，用于识别设备。而0是一个标识符，可以用于在一个驱动程序中区分多个相同类型的设备。</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 传统匹配方式ID列表 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">i2c_device_id</span> <span class="title">ap3216c_id</span>[] =</span> &#123;</span><br><span class="line">	&#123;<span class="string">&quot;alientek,ap3216c&quot;</span>, <span class="number">0</span>&#125;,  </span><br><span class="line">	&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-<p>当驱动加载时，内核会遍历 ap3216c_id[] 中的每个成员。<br>对于每个成员，内核会将其与<strong>已连接的设备</strong>进行比较。<br>如果匹配成功（例如设备的 compatible 属性与列表中的字符串匹配），则使用该标识符与设备进行匹配。<br>匹配成功后，内核会调用 probe 函数并传递匹配成功的 i2c_client 结构体和匹配的标识符。</p>
-<h5 id="2、设备树匹配列表"><a href="#2、设备树匹配列表" class="headerlink" title="2、设备树匹配列表"></a>2、设备树匹配列表</h5><p>这个列表用于与设备树中的设备节点匹配。在设备树中，每个设备节点都会包含一个 compatible 属性，用于描述设备的兼容性。在这里，我们也只有一个成员：{ .compatible &#x3D; “alientek,ap3216c” }。这个字符串和传统匹配方式中的一样，用于描述设备的兼容性。</p>
-<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 设备树匹配列表 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">of_device_id</span> <span class="title">ap3216c_of_match</span>[] =</span> &#123;</span><br><span class="line">	&#123; .compatible = <span class="string">&quot;alientek,ap3216c&quot;</span> &#125;,</span><br><span class="line">	&#123; <span class="comment">/* Sentinel */</span> &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
-<p>内核会在设备树中查找所有的设备节点，并查看每个节点的 compatible 属性。<br>对于 ap3216c_of_match[] 中的每个成员，内核会将其与<strong>设备节点</strong>的 compatible 属性进行比较。<br>如果设备树中存在一个节点的 compatible 属性与列表中的字符串匹配，则内核认为找到了匹配的设备。<br>匹配成功后，内核会创建对应的 i2c_client 结构体，并调用 probe 函数并传递该结构体。</p>
-<h4 id="二、为什么会同时使用这两种方式？"><a href="#二、为什么会同时使用这两种方式？" class="headerlink" title="二、为什么会同时使用这两种方式？"></a>二、为什么会同时使用这两种方式？</h4><p><strong>兼容性</strong>：使用两种方式可以增加驱动的兼容性，使其可以适应不同的硬件配置和平台。某些设备可能没有设备树信息，但可以使用传统匹配方式，而另一些可能只能通过设备树进行匹配。</p>
-<p><strong>平台支持</strong>：在不同的平台上，驱动可能需要适配不同的设备树结构。有些平台可能更倾向于使用设备树匹配方式，而另一些可能更倾向于传统匹配方式。因此，同时使用两种方式可以提高驱动在各种平台上的适应性。</p>
-]]></content>
       <categories>
         <category>嵌入式</category>
       </categories>
