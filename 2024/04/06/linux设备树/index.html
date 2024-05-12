@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="ZR">
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2024/04/06/linux设备树/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+        <meta name="description" content="5.1 什么是设备树？设备树(Device Tree)，将这个词分开就是“设备”和“树”，描述设备树的文件叫做 DTS(DeviceTree Source)，这个 DTS 文件采用树形结构描述板级设备，也就是开发板上的设备信息，比如CPU 数量、 内存基地址、 IIC 接口上接了哪些设备、 SPI 接口上接了哪些设备等等。 以前的 Linux 内核中 ARM 架构并没有采用设备树。在 Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux设备树">
+<meta property="og:url" content="http://example.com/2024/04/06/linux%E8%AE%BE%E5%A4%87%E6%A0%91/index.html">
+<meta property="og:site_name" content="ZR">
+<meta property="og:description" content="5.1 什么是设备树？设备树(Device Tree)，将这个词分开就是“设备”和“树”，描述设备树的文件叫做 DTS(DeviceTree Source)，这个 DTS 文件采用树形结构描述板级设备，也就是开发板上的设备信息，比如CPU 数量、 内存基地址、 IIC 接口上接了哪些设备、 SPI 接口上接了哪些设备等等。 以前的 Linux 内核中 ARM 架构并没有采用设备树。在 Linux">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-04-06T15:11:16.000Z">
+<meta property="article:modified_time" content="2024-05-12T15:12:24.677Z">
+<meta property="article:author" content="ZR">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+    
+    
+        <!-- Google tag (gtag.js) -->
+        <script src="https://www.googletagmanager.com/gtag/js?id="></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', '');
+        </script>
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            linux设备树 -
+        
+        ZR&#39;s blog
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+        <style>
+    :root {
+        --preloader-background-color: #fff;
+        --preloader-text-color: #000;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --preloader-background-color: #202124;
+            --preloader-text-color: #fff;
+        }
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            --preloader-background-color: #fff;
+            --preloader-text-color: #000;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .ml13 {
+            font-size: 2.6rem !important; /* Adjust this value as needed */
+        }
+    }
+
+    .preloader {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem; /* Tailwind 'gap-4' is 1rem */
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        padding: 12px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh; /* 'h-screen' is 100% of the viewport height */
+        background-color: var(--preloader-background-color);
+        z-index: 1100; /* 'z-[1100]' sets the z-index */
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .ml13 {
+        font-size: 3.2rem;
+        /* text-transform: uppercase; */
+        color: var(--preloader-text-color);
+        letter-spacing: -1px;
+        font-weight: 500;
+        font-family: 'Chillax-Variable', sans-serif;
+        text-align: center;
+    }
+
+    .ml13 .word {
+        display: inline-flex;
+        flex-wrap: wrap;
+        white-space: nowrap;
+    }
+
+    .ml13 .letter {
+        display: inline-block;
+        line-height: 1em;
+    }
+</style>
+
+<div class="preloader">
+    
+<script src="/js/libs/anime.min.js"></script>
+
+    <h1 class="ml13">
+        ZR&#39;s blog
+    </h1>
+    <script>
+        var textWrapper = document.querySelector('.ml13');
+        // Split text into words
+        var words = textWrapper.textContent.trim().split(' ');
+
+        // Clear the existing content
+        textWrapper.innerHTML = '';
+
+        // Wrap each word and its letters in spans
+        words.forEach(function(word) {
+            var wordSpan = document.createElement('span');
+            wordSpan.classList.add('word');
+            wordSpan.innerHTML = word.replace(/\S/g, "<span class='letter'>$&</span>");
+            textWrapper.appendChild(wordSpan);
+            textWrapper.appendChild(document.createTextNode(' ')); // Add space between words
+        });
+
+
+        anime.timeline({loop: true})
+            .add({
+                targets: '.ml13 .letter',
+                translateY: [100,0],
+                translateZ: 0,
+                opacity: [0,1],
+                easing: "easeOutExpo",
+                duration: 1400,
+                delay: (el, i) => 300 + 30 * i
+            }).add({
+            targets: '.ml13 .letter',
+            translateY: [0,-100],
+            opacity: [1,0],
+            easing: "easeInExpo",
+            duration: 1200,
+            delay: (el, i) => 100 + 30 * i
+        });
+
+        let themeStatus = JSON.parse(localStorage.getItem('REDEFINE-THEME-STATUS'))?.isDark;
+
+        // If the theme status is not found in local storage, check the preferred color scheme
+        if (themeStatus === undefined || themeStatus === null) {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                themeStatus = 'dark';
+            } else {
+                themeStatus = 'light';
+            }
+        }
+
+        // Now you can use the themeStatus variable in your code
+        if (themeStatus) {
+            document.documentElement.style.setProperty('--preloader-background-color', '#202124');
+            document.documentElement.style.setProperty('--preloader-text-color', '#fff');
+        } else {
+            document.documentElement.style.setProperty('--preloader-background-color', '#fff');
+            document.documentElement.style.setProperty('--preloader-text-color', '#000');
+        }
+
+        window.addEventListener('load', function () {
+            hidePreloaderAfterTimeout(1000); // Hide after 1000 milliseconds once the window has loaded
+        });
+
+        // Backup failsafe: Hide preloader after a maximum of 5000 milliseconds, regardless of the window load event
+        hidePreloaderAfterTimeout(5000);
+
+        function hidePreloaderAfterTimeout(delay) {
+            setTimeout(function () {
+                var preloader = document.querySelector('.preloader');
+                preloader.style.opacity = '0';
+                setTimeout(function () {
+                    preloader.style.display = 'none';
+                }, 200);
+            }, delay);
+        }
+    </script>
+</div>
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/assets/build/styles.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/fonts.css">
+
+    
+<link rel="stylesheet" href="/fonts/Satoshi/satoshi.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"title_alignment":"left","headings_top_spacing":{"h1":"5rem","h2":"4rem","h3":"2.8rem","h4":"2.5rem","h5":"2.2rem","h6":"2rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":true,"list":["Linux","嵌入式","问题解决","日常"]},"code_block":{"copy":true,"style":"mac","font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":true,"open_graph":true,"google_analytics":{"enable":true,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/welcome-cover.webp","dark":"/images/cover1.webp"},"title":"ZR's blog","subtitle":{"text":["总有一条蜿蜒在童话镇里七彩的河"],"hitokoto":{"enable":true,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/XDzr","instagram":null,"zhihu":null,"twitter":null,"email":"19105816977@163.com"},"qrs":{"weixin":null}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":true,"type":"fixed","audios":[{"name":"The truth that you leave","artist":"Pianoboy高至豪","url":"http://link.hhtjim.com/163/410518453.mp3","cover":"https://i.postimg.cc/gjs7QyrR/20240316224308.png","lrc":null}]},"mermaid":{"enable":false,"version":"9.3.0"}},"version":"2.6.1","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Archives":{"path":"/archives","icon":"fa-regular fa-archive"}},"search":{"enable":true,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":false,"links":{"嵌入式":{"path":"/categories/嵌入式","icon":"fa-regular fa-folder"},"Linux":{"path":"/categories/Linux","icon":"fa-regular fa-folder"},"日常":{"path":"/categories/日常","icon":"fa-regular fa-folder"},"问题解决":{"path":"/categories/问题解决","icon":"fa-regular fa-folder"}}},"article_date_format":"auto","categories":{"enable":true,"limit":4},"tags":{"enable":true,"limit":4}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+<!--        <span class="swup-progress-icon">-->
+<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+<!--        </span>-->
+    
+</div>
+
+
+<main class="page-container" id="swup">
+
+    
+
+    <div class="main-content-container">
+
+
+        <div class="main-content-header">
+            <header class="navbar-container px-6 md:px-12">
+
+    <div class="navbar-content ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                ZR&#39;s blog
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/archives"
+                                        >
+                                    <i class="fa-regular fa-archive fa-fw"></i>
+                                    ARCHIVES
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                        <li class="navbar-item search search-popup-trigger">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-screen w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/archives"
+                        >
+                            <span>
+                                ARCHIVES
+                            </span>
+                            
+                                <i class="fa-regular fa-archive fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">4</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">4</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">16</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="main-content-body">
+
+            
+
+            <div class="main-content">
+
+                
+                    <div class="post-page-container flex relative justify-between box-border w-full h-full">
+    <div class="article-content-container">
+
+        <div class="article-title relative w-full">
+            
+                <div class="w-full flex items-center pt-6 justify-start">
+                    <h1 class="article-title-regular text-second-text-color text-4xl md:text-6xl font-bold px-2 sm:px-6 md:px-8 py-3">linux设备树</h1>
+                </div>
+            
+            </div>
+
+        
+            <div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+                <div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+                    <img src="/images/redefine-avatar.svg">
+                </div>
+                <div class="info flex flex-col justify-between">
+                    <div class="author flex items-center">
+                        <span class="name text-default-text-color text-lg font-semibold">ZR</span>
+                        
+                            <span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv3</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2024-04-06 23:11:16</span>
+        <span class="mobile">2024-04-06 23:11:16</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2024-05-12 23:12:24</span>
+            <span class="mobile">2024-05-12 23:12:24</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+        <span class="article-categories article-meta-item">
+            <i class="fa-regular fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/Linux/">Linux</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Linux/">Linux</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        
+
+
+        <div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+            <h3 id="5-1-什么是设备树？"><a href="#5-1-什么是设备树？" class="headerlink" title="5.1 什么是设备树？"></a>5.1 什么是设备树？</h3><p>设备树(Device Tree)，将这个词分开就是“设备”和“树”，描述设备树的文件叫做 DTS(DeviceTree Source)，这个 DTS 文件采用树形结构描述板级设备，也就是开发板上的设备信息，比如CPU 数量、 内存基地址、 IIC 接口上接了哪些设备、 SPI 接口上接了哪些设备等等。</p>
+<p>以前的 Linux 内核中 ARM 架构并没有采用设备树。在 Linux 内核源码中大量的 arch&#x2F;arm&#x2F;mach-xxx 和 arch&#x2F;arm&#x2F;plat-xxx 文件夹，这些文件夹里面的文件就是对应平台下的板级信息。<br><strong>后来将这些描述板级硬件信息的内容都从 Linux 内中分离开来，用一个专属的文件格式来描述，这个专属的文件就叫做设备树，文件扩展名为.dts。</strong> 一个 SOC 可以作出很多不同的板子，这些不同的板子肯定是有共同的信息， 将这些共同的信息提取出来作为一个通用的文件，其他的.dts 文件直接引用这个通用文件即可，这个通用文件就是.dtsi 文件，类似于 C 语言中的头文件。一般.dts 描述板级信息(也就是开发板上有哪些 IIC 设备、 SPI 设备等)， .dtsi 描述 SOC 级信息(也就是 SOC 有几个 CPU、主频是多少、各个外设控制器信息等)。<br>这个就是设备树的由来，简而言之就是， Linux 内核中 ARM 架构下有太多的冗余的垃圾板级信息文件，导致 linus 震怒，然后 ARM 社区引入了设备树。</p>
+<h3 id="5-2-DTS、-DTB-和-DTC"><a href="#5-2-DTS、-DTB-和-DTC" class="headerlink" title="5.2 DTS、 DTB 和 DTC"></a>5.2 DTS、 DTB 和 DTC</h3><p>设备树源文件扩展名为.dts，但是我们在前面移植 Linux 的时候却一直在使用.dtb 文件，那么 DTS 和 DTB 这两个文件是什么关系呢？ DTS 是设备树源码文件， DTB 是将DTS 编译以后得到的二进制文件。将.c 文件编译为.o 需要用到 gcc 编译器，那么将.dts 编译为.dtb需要用到 DTC 工具。</p>
+<h3 id="5-3-DTS-语法"><a href="#5-3-DTS-语法" class="headerlink" title="5.3 DTS 语法"></a>5.3 DTS 语法</h3><h4 id="5-3-1-dtsi-头文件"><a href="#5-3-1-dtsi-头文件" class="headerlink" title="5.3.1 .dtsi 头文件"></a>5.3.1 .dtsi 头文件</h4><p>和 C 语言一样，设备树也支持头文件，设备树的头文件扩展名为.dtsi。在 imx6ull-alientekemmc.dts 中有如下所示内容：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dt-bindings/input/input.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;imx6ull.dtsi&quot;</span></span></span><br></pre></td></tr></table></figure></div>
+<p>一般.dtsi 文件用于描述 SOC 的内部外设信息，比如 CPU 架构、主频、外设寄存器地址范围，比如 UART、 IIC 等等。</p>
+<h4 id="5-3-2-设备节点"><a href="#5-3-2-设备节点" class="headerlink" title="5.3.2 设备节点"></a>5.3.2 设备节点</h4><p>设备树是采用树形结构来描述板子上的设备信息的文件，每个设备都是一个节点，叫做设备节点，每个节点都通过一些属性信息来描述节点信息，属性就是键—值对。</p>
+<h4 id="5-3-3-标准属性"><a href="#5-3-3-标准属性" class="headerlink" title="5.3.3 标准属性"></a>5.3.3 标准属性</h4><p>节点是由一堆的属性组成，节点都是具体的设备，不同的设备需要的属性不同，用户可以自定义属性。除了用户自定义属性，有很多属性是标准属性， Linux 下的很多外设驱动都会使用这些标准属性。</p>
+<h5 id="1、-compatible-属性"><a href="#1、-compatible-属性" class="headerlink" title="1、 compatible 属性"></a>1、 compatible 属性</h5><p>compatible 属性也叫做“兼容性”属性，这是非常重要的一个属性！ compatible 属性的值是一个字符串列表， compatible 属性用于将设备和驱动绑定起来。字符串列表用于选择设备所要使用的驱动程序， compatible 属性的值格式如下所示：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;manufacturer,model&quot;</span></span><br></pre></td></tr></table></figure></div>
+<p>其中 manufacturer 表示厂商， model 一般是模块对应的驱动名字。比如 imx6ull-alientekemmc.dts 中 sound 节点是 I.MX6U-ALPHA 开发板的音频设备节点， I.MX6U-ALPHA 开发板上的音频芯片采用的欧胜(WOLFSON)出品的 WM8960， sound 节点的 compatible 属性值如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compatible = <span class="string">&quot;fsl,imx6ul-evk-wm8960&quot;</span>,<span class="string">&quot;fsl,imx-audio-wm8960&quot;</span>;</span><br></pre></td></tr></table></figure></div>
+<p>属性值有两个，分别为“fsl,imx6ul-evk-wm8960”和“fsl,imx-audio-wm8960”，其中“fsl”表示厂商是飞思卡尔，“imx6ul-evk-wm8960”和“imx-audio-wm8960”表示驱动模块名字。** sound这个设备首先使用第一个兼容值在 Linux 内核里面查找，看看能不能找到与之匹配的驱动文件，如果没有找到的话就使用第二个兼容值查。**<br><strong>一般驱动程序文件都会有一个 OF 匹配表，此 OF 匹配表保存着一些 compatible 值，如果设备节点的 compatible 属性值和 OF 匹配表中的任何一个值相等，那么就表示设备可以使用这个驱动。比如在文件 imx-wm8960.c 中有如下内容：</strong></p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">of_device_id</span> <span class="title">imx_wm8960_dt_ids</span>[] =</span> &#123;</span><br><span class="line">    &#123; .compatible = <span class="string">&quot;fsl,imx-audio-wm8960&quot;</span>, &#125;,</span><br><span class="line">    &#123; <span class="comment">/* sentinel */</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line">MODULE_DEVICE_TABLE(of, imx_wm8960_dt_ids);</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">platform_driver</span> <span class="title">imx_wm8960_driver</span> =</span> &#123;</span><br><span class="line">    .driver = &#123;</span><br><span class="line">        .name = <span class="string">&quot;imx-wm8960&quot;</span>,</span><br><span class="line">        .pm = &amp;snd_soc_pm_ops,</span><br><span class="line">        .of_match_table = imx_wm8960_dt_ids,</span><br><span class="line">    &#125;,</span><br><span class="line">    .probe = imx_wm8960_probe,</span><br><span class="line">    .remove = imx_wm8960_remove,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>数组 imx_wm8960_dt_ids 就是 imx-wm8960.c 这个驱动文件的匹配表，此匹配表只有一个匹配值“fsl,imx-audio-wm8960”。如果在设备树中有哪个节点的 compatible 属性值与此相等，那么这个节点就会使用此驱动文件。<br>wm8960 采用了 platform_driver 驱动模式，关于 platform_driver 驱动后面会讲解。此行设置.of_match_table 为 imx_wm8960_dt_ids，也就是设置这个 platform_driver 所使用的OF 匹配表。</p>
+<h5 id="2、-model-属性"><a href="#2、-model-属性" class="headerlink" title="2、 model 属性"></a>2、 model 属性</h5><p>model 属性值也是一个字符串，一般 model 属性描述设备模块信息，比如名字什么的，比如：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model = <span class="string">&quot;wm8960-audio&quot;</span>;</span><br></pre></td></tr></table></figure></div>
+
+<h5 id="3、-status-属性"><a href="#3、-status-属性" class="headerlink" title="3、 status 属性"></a>3、 status 属性</h5><p>status 属性看名字就知道是和设备状态有关的， status 属性值也是字符串，字符串是设备的状态信息，可选的状态如下所示：</p>
+<ol>
+<li>“okay”：表明设备是可操作的。</li>
+<li>“disabled”：表明设备当前是不可操作的，但是在未来可以变为可操作的。</li>
+<li>“fail”：表明设备不可操作，设备检测到了一系列的错误，而且设备也不大可能变得可操作。</li>
+<li>“fail-sss”：含义和“fail”相同，后面的 sss 部分是检测到的错误内容。</li>
+</ol>
+<h5 id="4、-address-cells-和-size-cells-属性"><a href="#4、-address-cells-和-size-cells-属性" class="headerlink" title="4、 #address-cells 和#size-cells 属性"></a>4、 #address-cells 和#size-cells 属性</h5><p>这两个属性的值都是无符号 32 位整形， #address-cells 和#size-cells 这两个属性可以用在任何拥有子节点的设备中，用于描述子节点的地址信息。 #address-cells 属性值决定了子节点 reg 属性中地址信息所占用的字长(32 位)， #size-cells 属性值决定了子节点 reg 属性中长度信息所占的字长(32 位)。 #address-cells 和#size-cells 表明了子节点应该如何编写 reg 属性值，一般 reg 属性都是和地址有关的内容，和地址相关的信息有两种：起始地址和地址长度， reg 属性的格式一为：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg = &lt;address1 length1 address2 length2 address3 length3……&gt;</span><br></pre></td></tr></table></figure></div>
+<p>每个“address length”组合表示一个地址范围，其中 address 是起始地址， length 是地址长度， #address-cells 表明 address 这个数据所占用的字长， #size-cells 表明 length 这个数据所占用的字长。</p>
+<h5 id="5、-reg-属性"><a href="#5、-reg-属性" class="headerlink" title="5、 reg 属性"></a>5、 reg 属性</h5><p>reg 属性前面已经提到过了， reg 属性的值一般是(address， length)对。 reg 属性一般用于描述设备地址空间资源信息，一般都是某个外设的寄存器地址范围信息。</p>
+<h4 id="5-3-4-根节点-compatible-属性"><a href="#5-3-4-根节点-compatible-属性" class="headerlink" title="5.3.4 根节点 compatible 属性"></a>5.3.4 根节点 compatible 属性</h4><p>每个节点都有 compatible 属性，根节点“&#x2F;”也不例外， imx6ull-alientek-emmc.dts 文件中根节点的 compatible 属性内容如下所示：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/ &#123;</span><br><span class="line">    model = <span class="string">&quot;Freescale i.MX6 ULL 14x14 EVK Board&quot;</span>;</span><br><span class="line">    compatible = <span class="string">&quot;fsl,imx6ull-14x14-evk&quot;</span>, <span class="string">&quot;fsl,imx6ull&quot;</span>;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+<p>可以看出， compatible 有两个值：“fsl,imx6ull-14x14-evk”和“fsl,imx6ull”。<strong>前面我们说了，设备节点的 compatible 属性值是为了匹配 Linux 内核中的驱动程序</strong>，**通过根节点的 compatible 属性可以知道我们所使用的设备，一般第一个值描述了所使用的硬件设备名字，比如这里使用的是“imx6ull-14x14-evk”这个设备，第二个值描述了设备所使用的 SOC，比如这里使用的是“imx6ull”这颗 SOC。 **Linux 内核会通过根节点的 compoatible 属性查看是否支持此设备，如果支持的话设备就会启动 Linux 内核。</p>
+<h4 id="5-3-5-向节点追加或修改内容"><a href="#5-3-5-向节点追加或修改内容" class="headerlink" title="5.3.5 向节点追加或修改内容"></a>5.3.5 向节点追加或修改内容</h4><p>产品开发过程中可能面临着频繁的需求更改，比如第一版硬件上有一个 IIC 接口的六轴芯片 MPU6050，第二版硬件又要把这个 MPU6050 更换为 MPU9250 等。一旦硬件修改了，我们就要同步的修改设备树文件，毕竟设备树是描述板子硬件信息的文件。假设现在有个六轴芯片fxls8471， fxls8471 要接到 I.MX6U-ALPHA 开发板的 I2C1 接口上，那么相当于需要在 i2c1 这个节点上添加一个 fxls8471 子节点。先看一下 I2C1 接口对应的节点，打开文件 imx6ull.dtsi 文件，找到如下所示内容：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">i2c1: i2c@<span class="number">021</span>a0000 &#123;</span><br><span class="line">    <span class="meta">#address-cells = <span class="string">&lt;1&gt;</span>;</span></span><br><span class="line">    <span class="meta">#size-cells = <span class="string">&lt;0&gt;</span>;</span></span><br><span class="line">    compatible = <span class="string">&quot;fsl,imx6ul-i2c&quot;</span>, <span class="string">&quot;fsl,imx21-i2c&quot;</span>;</span><br><span class="line">    reg = &lt;<span class="number">0x021a0000</span> <span class="number">0x4000</span>&gt;;</span><br><span class="line">    interrupts = &lt;GIC_SPI <span class="number">36</span> IRQ_TYPE_LEVEL_HIGH&gt;;</span><br><span class="line">    clocks = &lt;&amp;clks IMX6UL_CLK_I2C1&gt;;</span><br><span class="line">    status = <span class="string">&quot;disabled&quot;</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>现在要在 i2c1 节点下创建一个子节点，这个子节点就是 fxls8471，最简单的方法就是在 i2c1 下直接添加一个名为 fxls8471 的子节点，如下所示：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">i2c1: i2c@<span class="number">021</span>a0000 &#123;</span><br><span class="line">    <span class="meta">#address-cells = <span class="string">&lt;1&gt;</span>;</span></span><br><span class="line">    <span class="meta">#size-cells = <span class="string">&lt;0&gt;</span>;</span></span><br><span class="line">    compatible = <span class="string">&quot;fsl,imx6ul-i2c&quot;</span>, <span class="string">&quot;fsl,imx21-i2c&quot;</span>;</span><br><span class="line">    reg = &lt;<span class="number">0x021a0000</span> <span class="number">0x4000</span>&gt;;</span><br><span class="line">    interrupts = &lt;GIC_SPI <span class="number">36</span> IRQ_TYPE_LEVEL_HIGH&gt;;</span><br><span class="line">    clocks = &lt;&amp;clks IMX6UL_CLK_I2C1&gt;;</span><br><span class="line">    status = <span class="string">&quot;disabled&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//fxls8471 子节点</span></span><br><span class="line">    fxls8471@<span class="number">1</span>e &#123;</span><br><span class="line">    compatible = <span class="string">&quot;fsl,fxls8471&quot;</span>;</span><br><span class="line">    reg = &lt;<span class="number">0x1e</span>&gt;;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>添加的 fxls8471 这个芯片对应的子节点。但是这样会有个问题！ i2c1 节点是定义在 imx6ull.dtsi 文件中的，而 imx6ull.dtsi 是设备树头文件，其他所有使用到 I.MX6ULL这颗 SOC 的板子都会引用 imx6ull.dtsi 这个文件。直接在 i2c1 节点中添加 fxls8471 就相当于在其他的所有板子上都添加了 fxls8471 这个设备，但是其他的板子并没有这个设备啊！因此，按照示例代码这样写肯定是不行的。<br>这里就要引入另外一个内容，那就是如何向节点追加数据，我们现在要解决的就是如何向i2c1 节点追加一个名为 fxls8471 的子节点，而且不能影响到其他使用到 I.MX6ULL 的板子。I.MX6U-ALPHA 开发板使用的设备树文件为 imx6ull-alientek-emmc.dts，因此我们需要在imx6ull-alientek-emmc.dts 文件中完成数据追加的内容，方式如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&amp;i2c1 &#123;</span><br><span class="line"><span class="comment">/* 要追加或修改的内容 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>第 1 行， &amp;i2c1 表示要访问 i2c1 这个 label 所对应的节点，也就是 imx6ull.dtsi 中的“i2c1:i2c@021a0000”。<br>第 2 行，花括号内就是要向 i2c1 这个节点添加的内容，包括修改某些属性的值。打开 imx6ull-alientek-emmc.dts，找到如下所示内容：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&amp;i2c1 &#123;</span><br><span class="line">    clock-frequency = &lt;<span class="number">100000</span>&gt;;</span><br><span class="line">    pinctrl-names = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">    pinctrl<span class="number">-0</span> = &lt;&amp;pinctrl_i2c1&gt;;</span><br><span class="line">    status = <span class="string">&quot;okay&quot;</span>;</span><br><span class="line"></span><br><span class="line">    mag3110@<span class="number">0</span>e &#123;</span><br><span class="line">        compatible = <span class="string">&quot;fsl,mag3110&quot;</span>;</span><br><span class="line">        reg = &lt;<span class="number">0x0e</span>&gt;;</span><br><span class="line">        position = &lt;<span class="number">2</span>&gt;;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    fxls8471@<span class="number">1</span>e &#123;</span><br><span class="line">        compatible = <span class="string">&quot;fsl,fxls8471&quot;</span>;</span><br><span class="line">        reg = &lt;<span class="number">0x1e</span>&gt;;</span><br><span class="line">        position = &lt;<span class="number">0</span>&gt;;</span><br><span class="line">        interrupt-parent = &lt;&amp;gpio5&gt;;</span><br><span class="line">        interrupts = &lt;<span class="number">0</span> <span class="number">8</span>&gt;;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>向 i2c1 节点添加&#x2F;修改数据，比如第 2 行的属性“clock-frequency”就表示 i2c1 时钟为 100KHz。“clock-frequency”就是新添加的属性。<br>第5 行，将 status 属性的值由原来的 disabled 改为 okay。<br>第 7-11 行， i2c1 子节点 mag3110，因为 NXP 官方开发板在 I2C1 上接了一个磁力计芯片 mag3110，正点原子的 I.MX6U-ALPHA 开发板并没有使用 mag3110。<br>第 13-18 行， i2c1 子节点 fxls8471，同样是因为 NXP 官方开发板在 I2C1 上接了 fxls8471这颗六轴芯片。<br>因为示例代码中的内容是 imx6ull-alientek-emmc.dts 这个文件内的，所以不会对使用 I.MX6ULL 这颗 SOC 的其他板子造成任何影响。这个就是向节点追加或修改内容，重点就是通过&amp;label 来访问节点，然后直接在里面编写要追加或者修改的内容。</p>
+<h3 id="5-4-设备树在系统中的体现"><a href="#5-4-设备树在系统中的体现" class="headerlink" title="5.4 设备树在系统中的体现"></a>5.4 设备树在系统中的体现</h3><p>Linux 内核启动的时候会解析设备树中各个节点的信息，并且在根文件系统的&#x2F;proc&#x2F;devicetree 目录下根据节点名字创建不同文件夹。</p>
+<h3 id="5-5-设备树常用-OF-操作函数"><a href="#5-5-设备树常用-OF-操作函数" class="headerlink" title="5.5 设备树常用 OF 操作函数"></a>5.5 设备树常用 OF 操作函数</h3><p>设备树描述了设备的详细信息，这些信息包括数字类型的、字符串类型的、数组类型的，我们在编写驱动的时候需要获取到这些信息。比如设备树使用 reg 属性描述了某个外设的寄存器地址为 0X02005482，长度为 0X400，我们在编写驱动的时候需要获取到 reg 属性的0X02005482 和 0X400 这两个值，然后初始化外设。 Linux 内核给我们提供了一系列的函数来获取设备树中的节点或者属性信息，这一系列的函数都有一个统一的前缀“of_”，所以在很多资料里面也被叫做 OF 函数。这些 OF 函数原型都定义在 include&#x2F;linux&#x2F;of.h 文件中。</p>
+<h4 id="5-5-1-查找节点的-OF-函数"><a href="#5-5-1-查找节点的-OF-函数" class="headerlink" title="5.5.1 查找节点的 OF 函数"></a>5.5.1 查找节点的 OF 函数</h4><p>设备都是以节点的形式“挂”到设备树上的，因此要想获取这个设备的其他属性信息，必须先获取到这个设备的节点。 Linux 内核使用 device_node 结构体来描述一个节点，此结构体定义在文件 include&#x2F;linux&#x2F;of.h 中，定义如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> &#123;</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *name; <span class="comment">/* 节点名字 */</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *type; <span class="comment">/* 设备类型 */</span></span><br><span class="line">    phandle phandle;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *full_name; <span class="comment">/* 节点全名 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">fwnode_handle</span> <span class="title">fwnode</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">property</span> *<span class="title">properties</span>;</span> <span class="comment">/* 属性 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">property</span> *<span class="title">deadprops</span>;</span> <span class="comment">/* removed 属性 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> *<span class="title">parent</span>;</span> <span class="comment">/* 父节点 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> *<span class="title">child</span>;</span> <span class="comment">/* 子节点 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> *<span class="title">sibling</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">kobject</span> <span class="title">kobj</span>;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> _flags;</span><br><span class="line">    <span class="type">void</span> *data;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(CONFIG_SPARC)</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *path_component_name;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> unique_id;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">of_irq_controller</span> *<span class="title">irq_trans</span>;</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></div>
+<p>与查找节点有关的 OF 函数有 5 个，我们依次来看一下。</p>
+<h5 id="1、-of-find-node-by-name-函数"><a href="#1、-of-find-node-by-name-函数" class="headerlink" title="1、 of_find_node_by_name 函数"></a>1、 of_find_node_by_name 函数</h5><p>of_find_node_by_name 函数通过节点名字查找指定的节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_find_node_by_name</span><span class="params">(<span class="keyword">struct</span> device_node *from,</span></span><br><span class="line"><span class="params">                                         <span class="type">const</span> <span class="type">char</span> *name)</span>;</span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>from：开始查找的节点，如果为 NULL 表示从根节点开始查找整个设备树。<br>name：要查找的节点名字。<br>返回值： 找到的节点，如果为 NULL 表示查找失败。</p>
+<h5 id="2、-of-find-node-by-type-函数"><a href="#2、-of-find-node-by-type-函数" class="headerlink" title="2、 of_find_node_by_type 函数"></a>2、 of_find_node_by_type 函数</h5><p>of_find_node_by_type 函数通过 device_type 属性查找指定的节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_find_node_by_type</span><span class="params">(<span class="keyword">struct</span> device_node *from, <span class="type">const</span> <span class="type">char</span> *type)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>from：开始查找的节点，如果为 NULL 表示从根节点开始查找整个设备树。<br>type：要查找的节点对应的 type 字符串，也就是 device_type 属性值。<br>返回值： 找到的节点，如果为 NULL 表示查找失败。</p>
+<h5 id="3、-of-find-compatible-node-函数"><a href="#3、-of-find-compatible-node-函数" class="headerlink" title="3、 of_find_compatible_node 函数"></a>3、 of_find_compatible_node 函数</h5><p>of_find_compatible_node 函数根据 device_type 和 compatible 这两个属性查找指定的节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_find_compatible_node</span><span class="params">(<span class="keyword">struct</span> device_node *from,</span></span><br><span class="line"><span class="params">                                            <span class="type">const</span> <span class="type">char</span> *type,</span></span><br><span class="line"><span class="params">                                            <span class="type">const</span> <span class="type">char</span> *compatible)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>from：开始查找的节点，如果为 NULL 表示从根节点开始查找整个设备树。<br>type：要查找的节点对应的 type 字符串，也就是 device_type 属性值，可以为 NULL，表示忽略掉 device_type 属性。<br>compatible： 要查找的节点所对应的 compatible 属性列表。返回值： 找到的节点，如果为 NULL 表示查找失败</p>
+<h5 id="4、-of-find-matching-node-and-match-函数"><a href="#4、-of-find-matching-node-and-match-函数" class="headerlink" title="4、 of_find_matching_node_and_match 函数"></a>4、 of_find_matching_node_and_match 函数</h5><p>of_find_matching_node_and_match 函数通过 of_device_id 匹配表来查找指定的节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_find_matching_node_and_match</span><span class="params">(<span class="keyword">struct</span> device_node *from,</span></span><br><span class="line"><span class="params">                                        <span class="type">const</span> <span class="keyword">struct</span> of_device_id *matches,</span></span><br><span class="line"><span class="params">                                        <span class="type">const</span> <span class="keyword">struct</span> of_device_id **match)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>from：开始查找的节点，如果为 NULL 表示从根节点开始查找整个设备树。<br>matches： of_device_id 匹配表，也就是在此匹配表里面查找节点。<br>match： 找到的匹配的 of_device_id。<br>返回值： 找到的节点，如果为 NULL 表示查找失败</p>
+<h5 id="5、-of-find-node-by-path-函数"><a href="#5、-of-find-node-by-path-函数" class="headerlink" title="5、 of_find_node_by_path 函数"></a>5、 of_find_node_by_path 函数</h5><p>of_find_node_by_path 函数通过路径来查找指定的节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">inline</span> <span class="keyword">struct</span> device_node *<span class="title function_">of_find_node_by_path</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>path：带有全路径的节点名，可以使用节点的别名，比如“&#x2F;backlight”就是 backlight 这个节点的全路径。<br>返回值： 找到的节点，如果为 NULL 表示查找失败</p>
+<h4 id="5-5-2-查找父-子节点的-OF-函数"><a href="#5-5-2-查找父-子节点的-OF-函数" class="headerlink" title="5.5.2 查找父&#x2F;子节点的 OF 函数"></a>5.5.2 查找父&#x2F;子节点的 OF 函数</h4><p>Linux 内核提供了几个查找节点对应的父节点或子节点的 OF 函数，我们依次来看一下。</p>
+<h5 id="1、-of-get-parent-函数"><a href="#1、-of-get-parent-函数" class="headerlink" title="1、 of_get_parent 函数"></a>1、 of_get_parent 函数</h5><p>of_get_parent 函数用于获取指定节点的父节点(如果有父节点的话)，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_get_parent</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> device_node *node)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>node：要查找的父节点的节点。返回值： 找到的父节点。</p>
+<h5 id="2、-of-get-next-child-函数"><a href="#2、-of-get-next-child-函数" class="headerlink" title="2、 of_get_next_child 函数"></a>2、 of_get_next_child 函数</h5><p>of_get_next_child 函数用迭代的方式查找子节点，函数原型如下：</p>
+<div class="highlight-container" data-rel="C"><figure class="iseeu highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device_node *<span class="title function_">of_get_next_child</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> device_node *node,</span></span><br><span class="line"><span class="params">                                      <span class="keyword">struct</span> device_node *prev)</span></span><br></pre></td></tr></table></figure></div>
+<p>函数参数和返回值含义如下：<br>node：父节点。<br>prev：前一个子节点，也就是从哪一个子节点开始迭代的查找下一个子节点。可以设置为NULL，表示从第一个子节点开始。<br>返回值： 找到的下一个子节点。</p>
+
+        </div>
+
+        
+            <div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+                <div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> linux设备树</li>
+        <li><strong>Author:</strong> ZR</li>
+        <li><strong>Created at
+                :</strong> 2024-04-06 23:11:16</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2024-05-12 23:12:24
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://redefine.ohevan.com/2024/04/06/linux设备树/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+            </div>
+        
+
+        
+            <ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+                
+                    <li class="tag-item mx-0.5">
+                        <a href="/tags/Linux/">#Linux</a>&nbsp;
+                    </li>
+                
+            </ul>
+        
+
+        
+
+        
+            <div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+                
+                    <div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+                        <a class="prev"
+                        rel="prev"
+                        href="/2024/04/12/Linux%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6%EF%BC%88%E6%97%A0%E8%AE%BE%E5%A4%87%E6%A0%91%EF%BC%89/"
+                        >
+                            <span class="left arrow-icon flex justify-center items-center">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex justify-center items-center">
+                                <span class="post-nav-title-item">Linux驱动框架（无设备树）</span>
+                                <span class="post-nav-item">Prev posts</span>
+                            </span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+                        <a class="next"
+                        rel="next"
+                        href="/2024/03/01/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
+                        >
+                            <span class="title flex justify-center items-center">
+                                <span class="post-nav-title-item">内存管理系统的异常处理</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex justify-center items-center">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+
+        
+            <div class="comment-container px-2 sm:px-6 md:px-8 pb-8">
+                <div class="comments-container mt-10 w-full ">
+    <div id="comment-anchor" class="w-full h-2.5"></div>
+    <div class="comment-area-title w-full my-1.5 md:my-2.5 text-xl md:text-3xl font-bold">
+        Comments
+    </div>
+    
+
+        
+            
+    <div id="waline"></div>
+    <script type="module" data-swup-reload-script>
+      import { init } from '/js/libs/waline.mjs';
+
+      function loadWaline() {
+        init({
+          el: '#waline',
+          serverURL: 'https://example.example.com',
+          lang: 'zh-CN',
+          dark: 'body[class~="dark-mode"]',
+          requiredMeta: ['nick', 'mail'],
+          emoji: [],
+          recaptchaV3Key: "wasd",
+          
+        });
+      }
+
+      if (typeof swup !== 'undefined') {
+        loadWaline();
+      } else {
+        window.addEventListener('DOMContentLoaded', loadWaline);
+      }
+    </script>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+
+    
+        <div class="toc-content-container">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <div class="toc-title">On this page</div>
+        <div class="page-title">linux设备树</div>
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%AE%BE%E5%A4%87%E6%A0%91%EF%BC%9F"><span class="nav-text">5.1 什么是设备树？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-DTS%E3%80%81-DTB-%E5%92%8C-DTC"><span class="nav-text">5.2 DTS、 DTB 和 DTC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-DTS-%E8%AF%AD%E6%B3%95"><span class="nav-text">5.3 DTS 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E8%AE%BE%E5%A4%87%E6%A0%91%E5%9C%A8%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E4%BD%93%E7%8E%B0"><span class="nav-text">5.4 设备树在系统中的体现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E8%AE%BE%E5%A4%87%E6%A0%91%E5%B8%B8%E7%94%A8-OF-%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="nav-text">5.5 设备树常用 OF 操作函数</span></a></li></ol>
+
+    </div>
+</div>
+        </div>
+    
+</div>
+
+
+
+                
+
+            </div>
+
+            
+
+        </div>
+
+        <div class="main-content-footer">
+            <footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2024&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">ZR</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        16 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.6.1</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="article-tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="right-bottom-tools page-aside-toggle">
+                <i class="fa-regular fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fa-regular fa-comments"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-side-tools-container">
+        <div class="side-tools-container">
+    <ul class="hidden-tools-list">
+        <li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-plus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-minus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+            <i class="fa-regular fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+
+        <li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+            <i class="fa-regular fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="visible-tools-list">
+        <li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+            <i class="fa-regular fa-cog fa-spin"></i>
+        </li>
+        
+            <li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+                <i class="arrow-up fas fa-arrow-up"></i>
+                <span class="percent"></span>
+            </li>
+        
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fa-solid fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fa-solid fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fa-solid fa-spinner fa-spin-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+    
+<script src="/js/libs/Swup.min.js"></script>
+
+<script src="/js/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+
+
+
+<script src="/js/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/utils.js" type="module"></script>
+
+<script src="/js/main.js" type="module"></script>
+
+<script src="/js/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/layouts/categoryList.js" type="module"></script>
+
+
+
+    
+<script src="/js/tools/localSearch.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/runtime.js"></script>
+
+    
+<script src="/js/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/libs/Typed.min.js"></script>
+
+  
+<script src="/js/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+
+<div class="post-scripts" data-swup-reload-script>
+    
+        
+<script src="/js/tools/tocToggle.js" type="module"></script>
+
+<script src="/js/layouts/toc.js" type="module"></script>
+
+<script src="/js/plugins/tabs.js" type="module"></script>
+
+    
+</div>
+
+
+    <div id="aplayer"></div>
+
+<script src="/js/libs/APlayer.min.js"></script>
+
+
+<script src="/js/plugins/aplayer.js"></script>
+
+
+</body>
+</html>
